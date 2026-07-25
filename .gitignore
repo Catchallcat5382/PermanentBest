@@ -1,0 +1,21 @@
+# Local build output
+build/
+build-*/
+dist/
+build-failure.txt
+
+# Portable tools downloaded by the BAT files
+.tools/
+
+# Generated mod binaries
+releases/latest/*.geode
+releases/latest/version.txt
+releases/latest/installed-path.txt
+releases/versions/*/*.geode
+
+# IDE and OS files
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

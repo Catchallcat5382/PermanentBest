@@ -1,0 +1,7 @@
+PERMANENT BEST v1.1.1
+
+- Fixed: src/main.cpp line 153 could not access m_fields from a const method.
+- Changed isGoldSpeedrunMode() to a non-const method, matching Geode Field<> access rules.
+- Added a disposable one-time GitHub creator/release publisher BAT.
+- The script uses portable Git and GitHub CLI, creates the public repository if missing, pushes main, waits for the workflow, publishes v1.1.1, and optionally installs the built mod.
+- Updated version and build cache to v1.1.1 / build-v111.
