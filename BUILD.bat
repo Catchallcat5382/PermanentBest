@@ -1,12 +1,12 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-title Permanent Best - Build and Install v1.1.1
+title Permanent Best - Build and Install v1.1.2
 color 06
 cls
 
 echo ============================================================
-echo  PERMANENT BEST - BUILD AND INSTALL v1.1.1
+echo  PERMANENT BEST - BUILD AND INSTALL v1.1.2
 echo ============================================================
 echo.
 echo Builds, packages, verifies, and installs Permanent Best.
@@ -16,7 +16,7 @@ echo Nothing is deleted.
 echo.
 
 for %%I in ("%~dp0.") do set "SOURCE_DIR=%%~fI"
-set "BUILD_ROOT=%LOCALAPPDATA%\PermanentBestBuild\build-v111"
+set "BUILD_ROOT=%LOCALAPPDATA%\PermanentBestBuild\build-v112"
 set "PACKAGE_STAGE=%BUILD_ROOT%\manual-package"
 
 set "GAME_ROOT=F:\SteamLibrary\steamapps\common\Geometry Dash"
@@ -45,6 +45,8 @@ set "OLD_GOLDEN_UNZIPPED=%GAME_ROOT%\geode\unzipped\firee.goldenbest"
 if not exist "%SOURCE_DIR%\CMakeLists.txt" goto project_missing
 if not exist "%SOURCE_DIR%\mod.json" goto modjson_missing
 if not exist "%SOURCE_DIR%\src\" goto source_missing
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SOURCE_DIR%\scripts\Normalize-Metadata.ps1"
+if errorlevel 1 goto metadata_failed
 if not exist "%GAME_EXE%" goto game_missing
 if not exist "%NINJA_EXE%" goto missing_ninja
 if not exist "%CMAKE_EXE%" goto missing_cmake
@@ -164,6 +166,8 @@ echo ERROR: CMakeLists.txt is missing.& goto fail
 echo ERROR: mod.json is missing.& goto fail
 :source_missing
 echo ERROR: src folder is missing.& goto fail
+:metadata_failed
+echo ERROR: mod.json validation or UTF-8 normalization failed.& goto fail
 :game_missing
 echo ERROR: GeometryDash.exe was not found at %GAME_EXE%.& goto fail
 :missing_ninja

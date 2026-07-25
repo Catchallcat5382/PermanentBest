@@ -14,7 +14,7 @@ Ensure-GitHubLogin
 Ensure-RepositoryConnected
 
 $previousRunIDs = @(Get-WorkflowRunIDs)
-$headSha = Commit-And-Push -Message 'Add Permanent Best v1.1.1'
+$headSha = Commit-And-Push -Message 'Update Permanent Best metadata handling'
 
 $runID = Wait-ForRunForCommit `
     -HeadSha $headSha `

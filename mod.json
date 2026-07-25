@@ -1,11 +1,11 @@
-﻿{
+{
     "geode":  "5.8.2",
     "gd":  {
                "win":  "2.2081"
            },
     "id":  "catchallcat5382.permanent-best",
     "name":  "Permanent Best",
-    "version":  "v1.1.2",
+    "version":  "v1.1.3",
     "developer":  "Catchallcat5382",
     "description":  "Permanently paints your saved best onto the progress bar, flashes when you pass it, and adds a separate Gold Speedrun mode for platformer levels.",
     "links":  {

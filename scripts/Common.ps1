@@ -17,6 +17,54 @@ $script:RepositoryUrl = 'https://github.com/Catchallcat5382/PermanentBest.git'
 $script:ModID = 'catchallcat5382.permanent-best'
 $script:DefaultGameRoot = 'F:\SteamLibrary\steamapps\common\Geometry Dash'
 
+
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content
+    )
+
+    $parent = Split-Path -Parent $Path
+    if (-not [string]::IsNullOrWhiteSpace($parent)) {
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    }
+
+    $encoding = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Path, $Content, $encoding)
+}
+
+function Normalize-ProjectMetadata {
+    $modPath = Join-Path $script:ProjectRoot 'mod.json'
+    $cmakePath = Join-Path $script:ProjectRoot 'CMakeLists.txt'
+
+    if (-not (Test-Path -LiteralPath $modPath)) {
+        throw 'mod.json is missing.'
+    }
+
+    $modText = [System.IO.File]::ReadAllText($modPath)
+    $mod = $modText | ConvertFrom-Json
+
+    if ([string]$mod.geode -match '^v(.+)$') {
+        $mod.geode = $Matches[1]
+    }
+
+    $json = $mod | ConvertTo-Json -Depth 20
+    Write-Utf8NoBom -Path $modPath -Content ($json + [Environment]::NewLine)
+
+    # Parse the exact bytes that will be pushed. Geode's cloud parser rejects a UTF-8 BOM.
+    $bytes = [System.IO.File]::ReadAllBytes($modPath)
+    if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+        throw 'mod.json still contains a UTF-8 BOM.'
+    }
+
+    $null = ([System.IO.File]::ReadAllText($modPath) | ConvertFrom-Json)
+
+    if (Test-Path -LiteralPath $cmakePath) {
+        $cmake = [System.IO.File]::ReadAllText($cmakePath)
+        Write-Utf8NoBom -Path $cmakePath -Content $cmake
+    }
+}
+
 function Download-And-ExpandZip {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
@@ -252,7 +300,8 @@ function Set-ModVersion {
     $modPath = Join-Path $script:ProjectRoot 'mod.json'
     $mod = Get-Content -LiteralPath $modPath -Raw | ConvertFrom-Json
     $mod.version = $Version
-    $mod | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $modPath -Encoding UTF8
+    $json = $mod | ConvertTo-Json -Depth 20
+    Write-Utf8NoBom -Path $modPath -Content ($json + [Environment]::NewLine)
 
     $cmakePath = Join-Path $script:ProjectRoot 'CMakeLists.txt'
     $cmake = Get-Content -LiteralPath $cmakePath -Raw
@@ -261,7 +310,7 @@ function Set-ModVersion {
         'project\(PermanentBest VERSION \d+\.\d+\.\d+\)',
         "project(PermanentBest VERSION $major.$minor.$patch)"
     )
-    Set-Content -LiteralPath $cmakePath -Value $cmake -Encoding UTF8
+    Write-Utf8NoBom -Path $cmakePath -Content $cmake
 
 
 }
@@ -354,7 +403,7 @@ function Save-BuildFailureLog {
         $lines = @(& $script:GhExe run view $RunID --repo $script:Repository --log 2>&1)
     }
 
-    $lines | Set-Content -LiteralPath $logPath -Encoding UTF8
+    Write-Utf8NoBom -Path $logPath -Content (($lines -join [Environment]::NewLine) + [Environment]::NewLine)
 
     Write-Host ''
     Write-Host "Build log: $logPath" -ForegroundColor Yellow
@@ -497,7 +546,7 @@ function Install-GeodePackage {
     }
 
     $latestDir = Join-Path $script:ProjectRoot 'releases\latest'
-    Set-Content -LiteralPath (Join-Path $latestDir 'installed-path.txt') -Value $destination -Encoding UTF8
+    Write-Utf8NoBom -Path (Join-Path $latestDir 'installed-path.txt') -Content ($destination + [Environment]::NewLine)
 
     Write-Host "Installed $embeddedVersion to: $destination" -ForegroundColor Green
 
@@ -549,6 +598,8 @@ function Download-BuildArtifact {
 
 function Commit-And-Push {
     param([Parameter(Mandatory = $true)][string]$Message)
+
+    Normalize-ProjectMetadata
 
     $code = Invoke-Git add --all
 

@@ -1,10 +1,9 @@
-PERMANENT BEST v1.1.1
+PERMANENT BEST v1.1.2 - GITHUB JSON/BOM FIX
 
-- Fixed: src/main.cpp line 153 could not access m_fields from a const method.
-- Changed isGoldSpeedrunMode() to a non-const method, matching Geode Field<> access rules.
-- Added a disposable one-time GitHub creator/release publisher BAT.
-- The script uses portable Git and GitHub CLI, creates the public repository if missing, pushes main, waits for the workflow, publishes v1.1.1, and optionally installs the built mod.
-- Updated version and build cache to v1.1.1 / build-v111.
-GitHub cloud-build fix:
-- mod.json now uses Geode version 5.8.2 without a leading v, matching Geode SDK 5.8.2 validation.
-
+- Fixed mod.json cloud parse error: expected value at line 1 column 1.
+- Root cause: Windows PowerShell 5.1 `Set-Content -Encoding UTF8` writes a UTF-8 BOM.
+- All metadata writes now use System.Text.UTF8Encoding(false).
+- PUSH.bat validates JSON and verifies the first bytes are not EF BB BF before staging.
+- BUILD.bat runs the same metadata normalizer before CMake.
+- Geode SDK value remains exactly `5.8.2` without a leading `v`.
+- GitHub repository creator files were removed because the repository is already created.

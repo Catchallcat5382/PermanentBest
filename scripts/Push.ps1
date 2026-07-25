@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 Initialize-PortableTools
 Ensure-GitHubLogin
 Ensure-RepositoryConnected
+Normalize-ProjectMetadata
 
 $message = Read-Host 'Describe the update [Update Permanent Best]'
 if ([string]::IsNullOrWhiteSpace($message)) {

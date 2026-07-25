@@ -1,3 +1,11 @@
+# v1.1.2
+
+- Fixed GitHub Actions failing to parse `mod.json` at line 1 column 1.
+- `PUSH.bat` now rewrites `mod.json` as UTF-8 **without BOM** before committing.
+- Added pre-push JSON validation and a BOM byte check.
+- `BUILD.bat` now normalizes and validates metadata before compiling or packaging.
+- Removed the one-time repository creator because `Catchallcat5382/PermanentBest` already exists.
+
 # v1.1.1
 
 - Fixed the Geode 5.8.2 compile error caused by reading `m_fields` from a const method.
