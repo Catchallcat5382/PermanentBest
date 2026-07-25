@@ -5,3 +5,6 @@ PERMANENT BEST v1.1.1
 - Added a disposable one-time GitHub creator/release publisher BAT.
 - The script uses portable Git and GitHub CLI, creates the public repository if missing, pushes main, waits for the workflow, publishes v1.1.1, and optionally installs the built mod.
 - Updated version and build cache to v1.1.1 / build-v111.
+GitHub cloud-build fix:
+- mod.json now uses Geode version 5.8.2 without a leading v, matching Geode SDK 5.8.2 validation.
+

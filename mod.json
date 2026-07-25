@@ -1,130 +1,130 @@
-{
-    "geode": "v5.8.2",
-    "gd": {
-        "win": "2.2081"
-    },
-    "id": "catchallcat5382.permanent-best",
-    "name": "Permanent Best",
-    "version": "v1.1.1",
-    "developer": "Catchallcat5382",
-    "description": "Permanently paints your saved best onto the progress bar, flashes when you pass it, and adds a separate Gold Speedrun mode for platformer levels.",
-    "links": {
-        "community": "https://discord.gg/ZqC32Bn68P",
-        "homepage": "https://github.com/Catchallcat5382/PermanentBest",
-        "source": "https://github.com/Catchallcat5382/PermanentBest"
-    },
-    "issues": {
-        "info": "Include your newest Geode log when reporting a problem.",
-        "url": "https://github.com/Catchallcat5382/PermanentBest/issues/new"
-    },
-    "tags": [
-        "gameplay",
-        "enhancement",
-        "utility",
-        "offline"
-    ],
-    "settings": {
-        "enabled": {
-            "name": "Enabled",
-            "description": "Master switch for Permanent Best and Gold Speedrun.",
-            "type": "bool",
-            "default": true
-        },
-        "show-gold-fill": {
-            "name": "Show Permanent Gold Bar",
-            "description": "Paint the saved best directly onto the active progress bar. Once you touch the old best, the gold fill follows the current run.",
-            "type": "bool",
-            "default": true
-        },
-        "completed-level-full-gold": {
-            "name": "Completed Levels Stay Gold",
-            "description": "Keep the entire progress bar gold on normal levels that you have completed.",
-            "type": "bool",
-            "default": true
-        },
-        "show-marker": {
-            "name": "Show Best Marker",
-            "description": "Show a permanent gold marker at the saved best percentage.",
-            "type": "bool",
-            "default": true
-        },
-        "show-best-label": {
-            "name": "Show Best Text",
-            "description": "Show BEST percentage or normal platformer best time below the progress bar.",
-            "type": "bool",
-            "default": true
-        },
-        "gold-current-label": {
-            "name": "Gold While Passing Best",
-            "description": "Turn the current percentage or normal platformer timer gold while it is ahead of the saved best.",
-            "type": "bool",
-            "default": true
-        },
-        "gold-flash": {
-            "name": "Gold Screen Flash",
-            "description": "Show a short gold flash when the old best is reached or a new time is saved.",
-            "type": "bool",
-            "default": true
-        },
-        "gold-shine": {
-            "name": "Gold Shine Sweep",
-            "description": "Sweep a bright gold-white shine across the screen when a record is reached.",
-            "type": "bool",
-            "default": true
-        },
-        "pulse-label": {
-            "name": "Pulse Best Text",
-            "description": "Briefly pulse the BEST text when a record is reached.",
-            "type": "bool",
-            "default": true
-        },
-        "platformer-mode": {
-            "name": "Normal Platformer Best Timer",
-            "description": "Track the fastest platformer completion time outside Gold Speedrun mode.",
-            "type": "bool",
-            "default": true
-        },
-        "gold-speedrun-mode": {
-            "name": "Gold Speedrun Mode",
-            "description": "Enable the separate platformer-only speedrun mode with its own records, failures, timer, and Golden Best.",
-            "type": "bool",
-            "default": true
-        },
-        "show-speedrun-button": {
-            "name": "Show Pause-Menu Speedrun Button",
-            "description": "Show the gold practice-style button in the lower-right of the pause menu. It appears locked on non-platformer levels.",
-            "type": "bool",
-            "default": true
-        },
-        "show-speedrun-timer": {
-            "name": "Show Gold Speedrun HUD",
-            "description": "Show the Gold Speedrun timer, Golden Best, run count, finishes, and failures near the top-right.",
-            "type": "bool",
-            "default": true
-        },
-        "save-run-history": {
-            "name": "Save Gold Run History",
-            "description": "Save the newest 20 Gold Speedrun completions and failures separately for every platformer level.",
-            "type": "bool",
-            "default": true
-        },
-        "practice-mode": {
-            "name": "Show in Practice Mode",
-            "description": "Display normal saved-best visuals in practice mode. Practice attempts never overwrite records.",
-            "type": "bool",
-            "default": false
-        },
-        "test-mode": {
-            "name": "Show in Start Position/Test Mode",
-            "description": "Display normal saved-best visuals during editor test or start-position attempts. Test attempts never overwrite records.",
-            "type": "bool",
-            "default": false
-        },
-        "best-color": {
-            "name": "Gold Color",
-            "description": "Color used for the permanent bar, marker, Golden Best timer, labels, and flash.",
-            "type": "color",
-            "default": "#FFD740"
-        }
-    }
+﻿{
+    "geode":  "5.8.2",
+    "gd":  {
+               "win":  "2.2081"
+           },
+    "id":  "catchallcat5382.permanent-best",
+    "name":  "Permanent Best",
+    "version":  "v1.1.2",
+    "developer":  "Catchallcat5382",
+    "description":  "Permanently paints your saved best onto the progress bar, flashes when you pass it, and adds a separate Gold Speedrun mode for platformer levels.",
+    "links":  {
+                  "community":  "https://discord.gg/ZqC32Bn68P",
+                  "homepage":  "https://github.com/Catchallcat5382/PermanentBest",
+                  "source":  "https://github.com/Catchallcat5382/PermanentBest"
+              },
+    "issues":  {
+                   "info":  "Include your newest Geode log when reporting a problem.",
+                   "url":  "https://github.com/Catchallcat5382/PermanentBest/issues/new"
+               },
+    "tags":  [
+                 "gameplay",
+                 "enhancement",
+                 "utility",
+                 "offline"
+             ],
+    "settings":  {
+                     "enabled":  {
+                                     "name":  "Enabled",
+                                     "description":  "Master switch for Permanent Best and Gold Speedrun.",
+                                     "type":  "bool",
+                                     "default":  true
+                                 },
+                     "show-gold-fill":  {
+                                            "name":  "Show Permanent Gold Bar",
+                                            "description":  "Paint the saved best directly onto the active progress bar. Once you touch the old best, the gold fill follows the current run.",
+                                            "type":  "bool",
+                                            "default":  true
+                                        },
+                     "completed-level-full-gold":  {
+                                                       "name":  "Completed Levels Stay Gold",
+                                                       "description":  "Keep the entire progress bar gold on normal levels that you have completed.",
+                                                       "type":  "bool",
+                                                       "default":  true
+                                                   },
+                     "show-marker":  {
+                                         "name":  "Show Best Marker",
+                                         "description":  "Show a permanent gold marker at the saved best percentage.",
+                                         "type":  "bool",
+                                         "default":  true
+                                     },
+                     "show-best-label":  {
+                                             "name":  "Show Best Text",
+                                             "description":  "Show BEST percentage or normal platformer best time below the progress bar.",
+                                             "type":  "bool",
+                                             "default":  true
+                                         },
+                     "gold-current-label":  {
+                                                "name":  "Gold While Passing Best",
+                                                "description":  "Turn the current percentage or normal platformer timer gold while it is ahead of the saved best.",
+                                                "type":  "bool",
+                                                "default":  true
+                                            },
+                     "gold-flash":  {
+                                        "name":  "Gold Screen Flash",
+                                        "description":  "Show a short gold flash when the old best is reached or a new time is saved.",
+                                        "type":  "bool",
+                                        "default":  true
+                                    },
+                     "gold-shine":  {
+                                        "name":  "Gold Shine Sweep",
+                                        "description":  "Sweep a bright gold-white shine across the screen when a record is reached.",
+                                        "type":  "bool",
+                                        "default":  true
+                                    },
+                     "pulse-label":  {
+                                         "name":  "Pulse Best Text",
+                                         "description":  "Briefly pulse the BEST text when a record is reached.",
+                                         "type":  "bool",
+                                         "default":  true
+                                     },
+                     "platformer-mode":  {
+                                             "name":  "Normal Platformer Best Timer",
+                                             "description":  "Track the fastest platformer completion time outside Gold Speedrun mode.",
+                                             "type":  "bool",
+                                             "default":  true
+                                         },
+                     "gold-speedrun-mode":  {
+                                                "name":  "Gold Speedrun Mode",
+                                                "description":  "Enable the separate platformer-only speedrun mode with its own records, failures, timer, and Golden Best.",
+                                                "type":  "bool",
+                                                "default":  true
+                                            },
+                     "show-speedrun-button":  {
+                                                  "name":  "Show Pause-Menu Speedrun Button",
+                                                  "description":  "Show the gold practice-style button in the lower-right of the pause menu. It appears locked on non-platformer levels.",
+                                                  "type":  "bool",
+                                                  "default":  true
+                                              },
+                     "show-speedrun-timer":  {
+                                                 "name":  "Show Gold Speedrun HUD",
+                                                 "description":  "Show the Gold Speedrun timer, Golden Best, run count, finishes, and failures near the top-right.",
+                                                 "type":  "bool",
+                                                 "default":  true
+                                             },
+                     "save-run-history":  {
+                                              "name":  "Save Gold Run History",
+                                              "description":  "Save the newest 20 Gold Speedrun completions and failures separately for every platformer level.",
+                                              "type":  "bool",
+                                              "default":  true
+                                          },
+                     "practice-mode":  {
+                                           "name":  "Show in Practice Mode",
+                                           "description":  "Display normal saved-best visuals in practice mode. Practice attempts never overwrite records.",
+                                           "type":  "bool",
+                                           "default":  false
+                                       },
+                     "test-mode":  {
+                                       "name":  "Show in Start Position/Test Mode",
+                                       "description":  "Display normal saved-best visuals during editor test or start-position attempts. Test attempts never overwrite records.",
+                                       "type":  "bool",
+                                       "default":  false
+                                   },
+                     "best-color":  {
+                                        "name":  "Gold Color",
+                                        "description":  "Color used for the permanent bar, marker, Golden Best timer, labels, and flash.",
+                                        "type":  "color",
+                                        "default":  "#FFD740"
+                                    }
+                 }
 }
