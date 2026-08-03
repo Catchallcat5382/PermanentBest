@@ -593,10 +593,10 @@ namespace {
     constexpr char const* LAYOUT_DEBUG_FLAG = "BestBarLayoutDebug.flag";
 
     bool layoutDebugEnabled() {
-        auto temp = std::getenv("TEMP");
-        if (!temp || !*temp) temp = std::getenv("TMP");
-        if (!temp || !*temp) return false;
-        return std::filesystem::exists(std::filesystem::path(temp) / LAYOUT_DEBUG_FLAG);
+        std::error_code error;
+        auto temp = std::filesystem::temp_directory_path(error);
+        if (error || temp.empty()) return false;
+        return std::filesystem::exists(temp / LAYOUT_DEBUG_FLAG, error) && !error;
     }
 
 }

@@ -1,4 +1,4 @@
-BEST BAR v2.0.0-beta.5 — CUSTOM PRACTICE BETA
+BEST BAR v2.0.0-beta.6 — CUSTOM PRACTICE BETA
 ==================================================
 
 This full source package adds a configurable Custom Practice Range system to Best Bar.

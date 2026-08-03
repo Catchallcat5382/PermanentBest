@@ -1,4 +1,4 @@
-BEST BAR PUSH / RELEASE FIX - v2.0.0-beta.5
+BEST BAR PUSH / RELEASE FIX - v2.0.0-beta.6
 
 - The only GitHub repository used is Catchallcat5382/PermanentBest.
 - PUSH.bat and RELEASE.bat never guess a repository and never create a new repository.
