@@ -1,0 +1,12 @@
+Best Bar v1.3.1 UI rebuild
+
+- Removed the partial mini bar that followed the current diamond.
+- The active state is now one complete gold bar covering the real progress bar.
+- Gold only appears in Gold Run, after passing the attempt-start best, or at 100%.
+- Rebuilt the diamond as a tall Geometry Dash-style marker with a separate gold glow.
+- Restored full-bar glow, shine sweep, ambient sparkles, transition burst, and record flash.
+- Enlarged the X/check beside BEST and added a check entry animation and sparkle.
+- Replaced the oversized standalone leaderboard button with a normal Geode circle button.
+- The leaderboard button is inserted into right-side-menu and uses updateLayout, so menu animation mods include it.
+- Rebuilt the leaderboard panel with an animated opening, cleaner columns, row backgrounds, and valid/invalid colors.
+- Kept local saving, online auto-refresh, Safe Mode validation, and CHEATED / NOT VALID handling.

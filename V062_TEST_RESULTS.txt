@@ -1,0 +1,36 @@
+GD Path Solver v0.6.2 source-package validation
+
+PASSED
+- mod version (v0.6.2)
+- source version
+- cmake version
+- build version/cache
+- removed m_isMini
+- main menu Path Editor button
+- pause BOT button removed
+- pause Path Editor button removed
+- pause scan remains
+- main button moved inward
+- pause scan moved inward
+- flying lookahead simulation
+- ship hold safeguard
+- wave hold safeguard
+- swing hold safeguard
+- imminent collision release scoring
+- balanced C++ delimiters ([])
+- setting show-scan-button
+- setting show-generated-path-v054
+- setting conservative-hitboxes-v060
+- setting input-frame-offset-v050
+- setting training-capture-v060
+- logo.png dimensions/mode ((256, 256) RGBA)
+- resources/solver-icon.png dimensions/mode ((128, 128) RGBA)
+- synthetic old controller reproduces wall hit (x=100.0)
+- synthetic lookahead avoids wall hit (x=152.5, toggles=11)
+- synthetic lookahead releases before wall ([(2.0, True), (37.0, False), (68.5, True), (72.0, False), (86.0, True)])
+
+NOT PERFORMED HERE
+- A real Windows Geode SDK compile.
+- Launching Geometry Dash and testing the route against live game physics.
+
+Run BUILD.bat on the target PC. The package removes BOT/PATH EDIT from PauseLayer, keeps PATH EDIT on MenuLayer, and adds collision-aware flying look-ahead.

@@ -1,0 +1,22 @@
+BEST BAR v1.4.0 UI / GAMEPLAY FIXES
+
+PROGRESS BAR
+- The stock red m_progressFill is hidden only while gold is active.
+- A gold fill is positioned and scaled to the exact bounding box of m_progressFill every update.
+- The stock outer progress bar is not replaced or enlarged.
+- Gold glow, sweep shine, sparkles, burst effects, and the current diamond remain attached to the real bar.
+
+BEST STATUS
+- Rebuilt bestbar-x.png as a clean centered X.
+- Increased and clamped the status position so it remains visible beside BEST.
+- At 100%, the X changes into the animated golden checkmark.
+
+LET'S GO FREEZE
+- Added a default-OFF setting named LET'S GO! Best Freeze.
+- Passing the best from the start of the attempt freezes gameplay with pauseGame(false), plays a scene-level LET'S GO! card, then calls resume().
+- No ESC pause menu is opened.
+
+LEADERBOARD
+- Removed cramped nine-row presentation.
+- Added a centered seven-row built-in-style panel with green header, cyan accents, brown ranked rows, and clear VALID/CHEATED badges.
+- Kept only the panel's close and refresh controls; no concept-image side buttons were added.

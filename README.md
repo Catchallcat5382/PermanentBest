@@ -1,23 +1,15 @@
-# Permanent Best
+# Best Bar v1.5.5
 
-Repository target: `https://github.com/Catchallcat5382/PermanentBest`
+Best Bar replaces Geometry Dash's stock red progress fill with a large, shiny gold fill when a run becomes gold-qualified. A level already saved at 100% displays a complete gold bar immediately, while an active best-chase attempt fills gold from the left edge to the player's current percentage.
 
-A Windows Geode v5.8.2 mod for Geometry Dash 2.2081.
+The BEST label uses the saved game percentage directly: an X is shown below 100%, and a golden animated checkmark is shown at 100%. The removed LET'S GO freeze feature is no longer present in the source, settings, or resources.
 
-Permanent Best keeps a saved best marker on the active progress bar, updates it as soon as the old record is passed, and tracks fastest completed platformer times.
-
-## Create the GitHub repository and first release
-
-Run `CREATE_GITHUB_AND_RELEASE_ONCE.bat` once. It downloads portable Git/GitHub CLI into `.tools`, opens GitHub login when required, creates the public `Catchallcat5382/PermanentBest` repository, pushes the full source, waits for GitHub Actions, downloads the Windows build, publishes the current version as a release, and optionally installs it. The BAT can be deleted afterward.
+The rebuilt speedrun leaderboard uses its own green/cyan frame and dark-purple body so texture packs cannot turn the entire panel into a flat red box. Each run row includes rank, player, time, level name, difficulty, stars or moons, level ID, and VALID/CHEATED status. Local runs work without a server.
 
 ## Build
 
-Close Geometry Dash and run `BUILD.bat`.
+Run `BUILD.bat`. The project targets Geode SDK 5.8.2, Geometry Dash 2.2081, and Windows x64.
 
-The local builder uses the same project, release, workflow, and portable-tool structure as GD Path Solver. It builds `PermanentBest.dll`, creates `catchallcat5382.permanent-best.geode`, verifies the package, copies it to `releases/latest/PermanentBest.geode`, and installs it into the Geode mods folder.
+## Online leaderboard
 
-## Settings
-
-Open Geode, select **Permanent Best**, and use the gear button. Settings include the marker, BEST text, gold current-progress color, screen flash, label pulse, platformer timer, practice/test visibility, and custom best color.
-
-The original `firee.goldenbest` mod changes the same percentage label. The included builder safely renames that package to `.disabled` during installation to prevent conflicts.
+The optional Cloudflare Worker is in `leaderboard-worker`. New databases use the v1.5 schema. For an existing pre-v1.5 database, run `MIGRATE_EXISTING_DB_TO_V1_5.bat` once before deploying the updated Worker.

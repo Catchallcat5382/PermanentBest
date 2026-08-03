@@ -1,0 +1,16 @@
+{
+  "name": "best-bar-leaderboard-worker",
+  "version": "1.5.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:local": "wrangler d1 execute best-bar-leaderboard --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute best-bar-leaderboard --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "wrangler": "^4.26.1",
+    "@cloudflare/workers-types": "^4.20250725.0"
+  }
+}

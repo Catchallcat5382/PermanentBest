@@ -1,0 +1,4 @@
+Best Bar v1.2.4
+- Normal-mode gold state now turns the entire top bar fully gold, matching the approved mockup.
+- Levels that already have BEST 100% now start in the gold visual state.
+- The current-position diamond stays on the main bar while the full gold effect is active.

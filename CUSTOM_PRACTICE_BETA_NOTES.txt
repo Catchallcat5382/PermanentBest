@@ -1,0 +1,40 @@
+BEST BAR v2.0.0-beta.5 — CUSTOM PRACTICE BETA
+==================================================
+
+This full source package adds a configurable Custom Practice Range system to Best Bar.
+
+CORE FLOW
+- Enable "Custom Practice Mode" in Best Bar settings.
+- Enter a level in Geometry Dash Practice Mode.
+- Pause and press the green PRACTICE RANGE button in the top-left.
+- Enter a start and target percentage, or use the draggable ghost preview.
+- Save + Restart to begin from the saved start.
+
+DEFAULTS
+- Custom Practice Mode: ON
+- Predefined Start and Target: ON
+- Live Start-to-Current Display: ON
+- Continue Past Target: OFF
+- Move Target Forward: ON
+- Checkpoint Sets Start: OFF
+- Safe Spawn Search: ON
+- Entry Mode: Both
+- Set Start / Set Target / Restart hotkeys: F6 / F7 / F8
+
+BEHAVIOR
+- With Continue Past Target OFF, reaching the target records success and ends the attempt.
+- With it ON, the HUD shows the amount beyond the target using a + value.
+- Checkpoints are blocked while Custom Practice is active unless "Checkpoint Sets Start" is enabled.
+- Start/target values are saved per level.
+- The popup shows recent attempt logs.
+- The preview moves only the level view and a local ghost marker; it does not complete the level.
+- Safe Spawn Search checks nearby vertical positions before using the exact requested Y.
+
+TEST STATUS
+- JSON and source-structure validation were run on this package.
+- It was not compiled or launched in Geometry Dash in this environment.
+- This is intentionally marked beta because the feature is a large gameplay system.
+
+BETA.2 BUILD FIX
+- Fixed the const m_fields access error in getCustomPracticeRecentLogs().
+- BUILD.bat now uses a fresh v2 beta cache directory.

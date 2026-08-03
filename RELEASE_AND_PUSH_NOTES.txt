@@ -1,0 +1,10 @@
+BEST BAR PUSH / RELEASE FIX - v2.0.0-beta.5
+
+- The only GitHub repository used is Catchallcat5382/PermanentBest.
+- PUSH.bat and RELEASE.bat never guess a repository and never create a new repository.
+- Any stale origin URL or .bestbar-repository value is overwritten with PermanentBest.
+- The existing main branch is fetched safely before pushing.
+- PUSH.bat still accepts any valid semantic version, including beta and RC versions.
+- Press Enter to keep the current mod.json version, or enter another valid version.
+- Artifact downloads support both BestBar-Windows and the existing PermanentBest-Windows workflow name.
+- No gameplay code was changed in this repository-target correction.

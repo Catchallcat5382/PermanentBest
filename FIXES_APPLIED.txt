@@ -1,9 +1,34 @@
-PERMANENT BEST v1.1.2 - GITHUB JSON/BOM FIX
+GD Path Solver v0.6.2
 
-- Fixed mod.json cloud parse error: expected value at line 1 column 1.
-- Root cause: Windows PowerShell 5.1 `Set-Content -Encoding UTF8` writes a UTF-8 BOM.
-- All metadata writes now use System.Text.UTF8Encoding(false).
-- PUSH.bat validates JSON and verifies the first bytes are not EF BB BF before staging.
-- BUILD.bat runs the same metadata normalizer before CMake.
-- Geode SDK value remains exactly `5.8.2` without a leading `v`.
-- GitHub repository creator files were removed because the repository is already created.
+CORE SOLVER
+- Delays cube jumps toward the latest safe takeoff instead of rewarding very early jumps.
+- Enlarges and rotates conservative stock/custom spike bounds so a predicted descent cannot pass through a visible spike tip.
+- Uses stricter landing ownership: a spike on a block prevents snapping onto the block beneath it.
+- Carries the real planned Y position across every mode segment instead of resetting to the portal height.
+- Tracks cube/ship/ball/UFO/wave/robot/spider/swing mode portals, normal/inverse/toggle gravity portals, regular/mini size portals, and speed portals.
+- Includes jump pads and orb activation regions in the gameplay object scan.
+- Removed blind orb presses; an orb is activated only when a chosen press intersects its usable region.
+- Flying planners now compare short press/release futures, generate visible paths, and reject routes that intersect solids/hazards.
+- Ship, wave, and swing control now releases before excessive continuous holds carry the icon into walls.
+- Stronger penalties for unnecessary jumps, long holds, repeated toggles, and jumping too far before the next obstacle.
+
+DEBUG / TRAINING
+- Added one-run successful training capture.
+- Captures 240 TPS input frames, sampled X/Y/vertical velocity, active mode, gravity, mini state, and scanned gameplay hitboxes.
+- Writes a shareable JSON trace plus the exact successful GDR2 replay to the mod save folder.
+- Learns a small global press/release X timing bias by matching a successful run to the generated route.
+- Training is one-shot and automatically disarms after completion.
+
+PATH EDITOR / PLAYBACK
+- Added a Path Editor beta with a full-level hitbox/path overview.
+- Input events can be selected, moved in world X, deleted, loaded as the current bot route, and exported.
+- Internal replay support remains available to the solver, but the confusing BOT pause-menu button was removed.
+- PATH EDIT was removed from the pause screen and remains on the Geometry Dash main menu.
+
+BUILD
+- Fixed the 2.2081 PlayerObject mini-state compile error by using m_vehicleSize.
+- User options now appear in Geode mod settings.
+- The main-menu button now opens Path Editor.
+- Replaced the old logo and icon.
+- Version updated to v0.6.2.
+- BUILD.bat now uses build-v062.

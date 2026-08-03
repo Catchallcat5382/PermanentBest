@@ -1,2 +1,1 @@
-`latest` contains the newest locally built PermanentBest.geode package.
-`versions` is reserved for archived release packages.
+`latest` contains the newest locally or cloud-built BestBar.geode package.

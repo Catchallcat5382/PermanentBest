@@ -1,0 +1,8 @@
+name = "best-bar-leaderboard"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "best-bar-leaderboard"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"

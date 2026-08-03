@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Permanent Best - Publish Release
+title Best Bar - Publish Release
 color 06
 cls
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\Release.ps1"

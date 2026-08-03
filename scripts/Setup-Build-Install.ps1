@@ -3,18 +3,25 @@ $ErrorActionPreference = 'Stop'
 
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Magenta
-Write-Host ' PERMANENT BEST - FIRST-TIME SETUP, BUILD, INSTALL' -ForegroundColor Magenta
+Write-Host ' BEST BAR - FIRST-TIME SETUP, BUILD, INSTALL' -ForegroundColor Magenta
 Write-Host '============================================================' -ForegroundColor Magenta
 Write-Host "Project:    $script:ProjectRoot" -ForegroundColor DarkGray
-Write-Host "Repository: $script:Repository" -ForegroundColor DarkGray
 Write-Host ''
 
 Initialize-PortableTools
 Ensure-GitHubLogin
 Ensure-RepositoryConnected
+Write-Host "Repository: $script:Repository" -ForegroundColor DarkGray
 
 $previousRunIDs = @(Get-WorkflowRunIDs)
-$headSha = Commit-And-Push -Message 'Update Permanent Best metadata handling'
+$headSha = Commit-And-Push -Message 'Update Best Bar metadata handling'
+
+if (-not $script:LastCommitCreated) {
+    & $script:GhExe workflow run build.yml --repo $script:Repository --ref main
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not start the GitHub Actions build.'
+    }
+}
 
 $runID = Wait-ForRunForCommit `
     -HeadSha $headSha `

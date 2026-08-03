@@ -19,3 +19,4 @@ releases/versions/*/*.geode
 .idea/
 Thumbs.db
 .DS_Store
+.bestbar-repository

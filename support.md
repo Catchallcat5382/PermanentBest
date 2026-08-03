@@ -4,9 +4,8 @@ When reporting a problem, include:
 
 - Geometry Dash version
 - Geode loader version
-- Permanent Best version
+- Best Bar version
 - Whether the level is normal or platformer
-- Whether practice mode, test mode, or another progress-bar mod was active
+- Whether practice mode, test mode, or Gold Run was active
+- Whether another progress-bar mod was enabled
 - The newest file from `Geometry Dash/geode/logs`
-
-Golden Best modifies the same percentage label, so disable `firee.goldenbest` while using Permanent Best.

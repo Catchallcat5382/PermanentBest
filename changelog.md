@@ -1,27 +1,27 @@
-# v1.1.2
+# Changelog
 
-- Fixed GitHub Actions failing to parse `mod.json` at line 1 column 1.
-- `PUSH.bat` now rewrites `mod.json` as UTF-8 **without BOM** before committing.
-- Added pre-push JSON validation and a BOM byte check.
-- `BUILD.bat` now normalizes and validates metadata before compiling or packaging.
-- Removed the one-time repository creator because `Catchallcat5382/PermanentBest` already exists.
+## v1.5.5
 
-# v1.1.1
+- Removed the LET'S GO freeze setting, source code, and sprite resource.
+- Rebuilt gold-fill layout around the full stock progress-bar geometry instead of the changing current-fill bounding box.
+- Saved 100% completion now forces a complete gold bar immediately.
+- Increased gold fill height, glow strength, and clipped shine visibility.
+- Rebuilt the leaderboard with a green/cyan frame, dark-purple body, compact ranked rows, and a proper empty state.
+- Added level difficulty, stars/moons, level ID, and platformer/classic metadata to local and online leaderboard entries.
+- Kept backward compatibility with existing five-field local leaderboard saves.
 
-- Fixed the Geode 5.8.2 compile error caused by reading `m_fields` from a const method.
-- Added `CREATE_GITHUB_AND_RELEASE_ONCE.bat`.
-- The one-time script creates `Catchallcat5382/PermanentBest`, pushes all source files, waits for GitHub Actions, downloads the Windows `.geode`, publishes the v1.1.1 release, and optionally installs it.
-- Switched the local build cache to `build-v111`.
+## v1.4.0
+- Replaced the stock red progress fill itself with an exact-size gold fill after passing attempt-start best; removed the separate oversized gold bar.
+- Restored gold glow, shine, ambient sparkles, burst VFX, and gold diamond effects around the real fill.
+- Rebuilt and recentered the BEST X; completion still animates into the golden checkmark.
+- Rebuilt the leaderboard as one centered Geometry Dash-style green/teal/brown panel with seven larger rows and clear VALID/CHEATED badges.
+- Increased the main-menu leaderboard icon size for better readability.
 
-# v1.1.0
-
-- Added a permanent gold fill directly on the active normal-level progress bar.
-- The gold fill stays at the saved best, then follows the player after the old best is reached.
-- Completed normal levels can keep a fully gold progress bar.
-- Added optional gold flash, shine sweep, and record banners.
-- Added platformer-only Gold Speedrun mode with a custom pause-menu button.
-- The button is gold on platformer levels and locked with a clear explanation on normal levels.
-- Added a separate top-right speedrun timer, Golden Best time, run count, finishes, and failures.
-- Gold Speedrun records are separate from normal platformer records.
-- Saves the newest 20 Gold Speedrun completions and failed runs per level.
-- Added Geode loader settings for every new visual and speedrun feature.
+## v1.3.1
+- Full thick gold progress overlay replaces the thin strip.
+- Gold appears only for active Gold Run, passed original attempt best, or 100%.
+- Moved completion state beside BEST: normal X before completion, gold check after 100%.
+- Added themed main-menu leaderboard button and auto-refreshing leaderboard page.
+- Added persistent local runs and optional shared Worker/D1 backend.
+- Added Safe Mode, major-assist detection, runtime time-scale detection, and CHEATED / NOT VALID results.
+- Invalid runs cannot overwrite Gold Best.

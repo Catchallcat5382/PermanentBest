@@ -1,10 +1,8 @@
-# Permanent Best
+# Best Bar
 
-Permanent Best keeps your saved record visible while the Geometry Dash progress bar is active.
+Best Bar v1.5.0 provides a full-width shiny gold progress fill, reliable saved-100% detection, an X-to-golden-check completion indicator, Gold Run timing, cheat-validity labeling, and a redesigned leaderboard that includes level and difficulty details.
 
-- A gold marker stays at your best percentage.
-- Passing the marker updates the record immediately and can trigger a small gold flash.
-- Platformer levels store and display your fastest completed time.
-- Practice and start-position attempts can display the record without overwriting it.
 
-All options are available from the mod's settings page in the Geode loader.
+## Custom Practice Range (v2 beta)
+
+Custom Practice adds per-level start and target percentages, checkpoint-as-start behavior, exact decimal input, a draggable ghost preview, safe spawn searching, a replacement practice HUD, target completion behavior, optional overrun tracking, hotkeys, and recent attempt logs. Open it from the green Practice Range button in the pause menu while playing in Practice Mode.

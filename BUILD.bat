@@ -1,22 +1,20 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-title Permanent Best - Build and Install v1.1.2
+title Best Bar - Build and Install v2.0.0-beta.5
 color 06
 cls
 
 echo ============================================================
-echo  PERMANENT BEST - BUILD AND INSTALL v1.1.2
+echo  BEST BAR - BUILD AND INSTALL v2.0.0-beta.5
 echo ============================================================
 echo.
-echo Builds, packages, verifies, and installs Permanent Best.
-echo The old firee.goldenbest mod is safely renamed to .disabled
-echo to prevent both mods from editing the same progress label.
-echo Nothing is deleted.
+echo Builds, packages, verifies, and installs Best Bar.
+echo The complete gold overlay appears only for Gold Run, passed-best, or 100%% states.
 echo.
 
 for %%I in ("%~dp0.") do set "SOURCE_DIR=%%~fI"
-set "BUILD_ROOT=%LOCALAPPDATA%\PermanentBestBuild\build-v112"
+set "BUILD_ROOT=%LOCALAPPDATA%\BestBarBuild\build-v200-beta5"
 set "PACKAGE_STAGE=%BUILD_ROOT%\manual-package"
 
 set "GAME_ROOT=F:\SteamLibrary\steamapps\common\Geometry Dash"
@@ -30,17 +28,14 @@ set "GIT_BIN=C:\Program Files\Git\cmd"
 set "GEODE_SDK=%LOCALAPPDATA%\GeodeSDK\Geode"
 set "CPM_SOURCE_CACHE=%LOCALAPPDATA%\GeodeSDK\cpm-cache"
 
-set "MOD_ID=catchallcat5382.permanent-best"
-set "TARGET_NAME=PermanentBest"
+set "MOD_ID=catchallcat5382.best-bar"
+set "TARGET_NAME=BestBar"
 set "BUILT_MOD=%BUILD_ROOT%\%MOD_ID%.geode"
 set "LATEST_DIR=%SOURCE_DIR%\releases\latest"
-set "LATEST_MOD=%LATEST_DIR%\PermanentBest.geode"
+set "LATEST_MOD=%LATEST_DIR%\BestBar.geode"
 set "MODS_DIR=%GAME_ROOT%\geode\mods"
 set "UNZIPPED_DIR=%GAME_ROOT%\geode\unzipped\%MOD_ID%"
 set "INSTALLED_MOD=%MODS_DIR%\%MOD_ID%.geode"
-set "OLD_GOLDEN_MOD=%MODS_DIR%\firee.goldenbest.geode"
-set "OLD_GOLDEN_DISABLED=%MODS_DIR%\firee.goldenbest.geode.disabled"
-set "OLD_GOLDEN_UNZIPPED=%GAME_ROOT%\geode\unzipped\firee.goldenbest"
 
 if not exist "%SOURCE_DIR%\CMakeLists.txt" goto project_missing
 if not exist "%SOURCE_DIR%\mod.json" goto modjson_missing
@@ -131,13 +126,12 @@ del /F /Q "%LATEST_DIR%\*" >nul 2>&1
 copy /Y "%BUILT_MOD%" "%LATEST_MOD%" >nul || goto latest_copy_failed
 
 if not exist "%MODS_DIR%" mkdir "%MODS_DIR%"
-if exist "%OLD_GOLDEN_MOD%" (
-    echo Disabling old Golden Best package to prevent conflicts...
-    if exist "%OLD_GOLDEN_DISABLED%" del /F /Q "%OLD_GOLDEN_DISABLED%"
-    move /Y "%OLD_GOLDEN_MOD%" "%OLD_GOLDEN_DISABLED%" >nul || goto old_mod_disable_failed
+for %%F in ("%MODS_DIR%\catchallcat5382.*best*.geode") do (
+    if /I not "%%~nxF"=="%MOD_ID%.geode" del /F /Q "%%~fF" >nul 2>nul
 )
-if exist "%OLD_GOLDEN_UNZIPPED%\" rmdir /S /Q "%OLD_GOLDEN_UNZIPPED%"
-
+for /D %%D in ("%GAME_ROOT%\geode\unzipped\catchallcat5382.*best*") do (
+    if /I not "%%~nxD"=="%MOD_ID%" rmdir /S /Q "%%~fD" >nul 2>nul
+)
 if exist "%INSTALLED_MOD%" del /F /Q "%INSTALLED_MOD%"
 if exist "%UNZIPPED_DIR%\" rmdir /S /Q "%UNZIPPED_DIR%"
 copy /Y "%BUILT_MOD%" "%INSTALLED_MOD%" >nul || goto install_failed
@@ -149,13 +143,13 @@ if not "!BUILT_SIZE!"=="!INSTALLED_SIZE!" goto install_failed
 color 0A
 echo.
 echo ============================================================
-echo  PERMANENT BEST INSTALLED SUCCESSFULLY
+echo  BEST BAR INSTALLED SUCCESSFULLY
 echo ============================================================
 echo Installed: %INSTALLED_MOD%
 echo Package:   %LATEST_MOD%
 echo Size:      !INSTALLED_SIZE! bytes
 echo.
-echo Open Geode ^> Permanent Best ^> Settings to customize it.
+echo Open Geode ^> Best Bar ^> Settings to customize it.
 echo.
 pause
 exit /b 0
@@ -194,8 +188,6 @@ echo ERROR: The .geode package could not be created.& goto fail
 echo ERROR: The .geode package failed verification.& goto fail
 :latest_copy_failed
 echo ERROR: Could not update releases\latest.& goto fail
-:old_mod_disable_failed
-echo ERROR: Could not safely disable firee.goldenbest.& goto fail
 :install_failed
 echo ERROR: Could not install or verify the package.& goto fail
 

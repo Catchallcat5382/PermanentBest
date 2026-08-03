@@ -1,0 +1,11 @@
+BEST BAR v1.3.1 - GOLD BAR + LEADERBOARD FIXES
+
+- Replaced the thin gold strip with the full thick gold track, fill, glow, shine, sparkles, and exact current-position diamond.
+- Gold activates only during Gold Run, after passing the best percent that existed when the attempt started, or at 100%.
+- Removed the old marker/check from the bar. BEST now has a normal X until completion and a gold check after 100%.
+- Added a themed main-menu leaderboard button above the shop area.
+- Added persistent local Gold Run leaderboard data and 15-second online refresh.
+- Added optional Cloudflare Worker + D1 backend under leaderboard-worker.
+- Safe Mode blocks large assists. With Safe Mode off, noclip, slow motion, speedhack, macros, teleport, clickbot, and modified time scale mark the run CHEATED / NOT VALID.
+- Hitbox display and respawn/restart/death-delay mods remain allowed.
+- Invalid runs never replace the ranked Gold Best.

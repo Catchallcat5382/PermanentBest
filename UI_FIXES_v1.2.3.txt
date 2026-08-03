@@ -1,0 +1,8 @@
+BEST BAR v1.2.3 - CONDITIONAL GOLD + DIAMOND MARKER FIX
+
+1. The real top progress bar stays normal before the saved best.
+2. Gold fill, glow, shine, and sparkles activate only after the current run passes the attempt-start best, or when the level reaches 100%.
+3. Platformer Gold Run mode makes the real top bar gold while the mode is active.
+4. A large red/white diamond now shows the current position directly on the stock bar. It switches to a gold diamond whenever the gold state is active.
+5. The saved-best marker is larger and centered directly on the stock bar instead of floating above it.
+6. The Gold Run pause button matches the Practice button size and anchors beside the stock retry/practice row at the same Y level, avoiding overlap.

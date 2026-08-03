@@ -14,7 +14,8 @@ $script:GitConfigPath = Join-Path $script:ToolsRoot 'portable-gitconfig'
 
 $script:Repository = 'Catchallcat5382/PermanentBest'
 $script:RepositoryUrl = 'https://github.com/Catchallcat5382/PermanentBest.git'
-$script:ModID = 'catchallcat5382.permanent-best'
+$script:RepositoryConfigPath = Join-Path $script:ProjectRoot '.bestbar-repository'
+$script:ModID = 'catchallcat5382.best-bar'
 $script:DefaultGameRoot = 'F:\SteamLibrary\steamapps\common\Geometry Dash'
 
 
@@ -44,6 +45,34 @@ function Normalize-ProjectMetadata {
     $modText = [System.IO.File]::ReadAllText($modPath)
     $mod = $modText | ConvertFrom-Json
 
+    if (-not [string]::IsNullOrWhiteSpace($script:Repository)) {
+        $repositoryWeb = "https://github.com/$($script:Repository)"
+        if (-not $mod.links) {
+            $mod | Add-Member -MemberType NoteProperty -Name links -Value ([PSCustomObject]@{})
+        }
+        if (-not $mod.links.PSObject.Properties['homepage']) {
+            $mod.links | Add-Member -MemberType NoteProperty -Name homepage -Value $repositoryWeb
+        }
+        else {
+            $mod.links.homepage = $repositoryWeb
+        }
+        if (-not $mod.links.PSObject.Properties['source']) {
+            $mod.links | Add-Member -MemberType NoteProperty -Name source -Value $repositoryWeb
+        }
+        else {
+            $mod.links.source = $repositoryWeb
+        }
+        if (-not $mod.issues) {
+            $mod | Add-Member -MemberType NoteProperty -Name issues -Value ([PSCustomObject]@{})
+        }
+        if (-not $mod.issues.PSObject.Properties['url']) {
+            $mod.issues | Add-Member -MemberType NoteProperty -Name url -Value "$repositoryWeb/issues/new"
+        }
+        else {
+            $mod.issues.url = "$repositoryWeb/issues/new"
+        }
+    }
+
     if ([string]$mod.geode -match '^v(.+)$') {
         $mod.geode = $Matches[1]
     }
@@ -71,9 +100,9 @@ function Download-And-ExpandZip {
         [Parameter(Mandatory = $true)][string]$Destination
     )
 
-    $headers = @{ 'User-Agent' = 'PermanentBest-Portable-Setup' }
-    $zip = Join-Path $env:TEMP ("permanent-best-" + [Guid]::NewGuid().ToString('N') + '.zip')
-    $extract = Join-Path $env:TEMP ("permanent-best-" + [Guid]::NewGuid().ToString('N'))
+    $headers = @{ 'User-Agent' = 'BestBar-Portable-Setup' }
+    $zip = Join-Path $env:TEMP ("best-bar-" + [Guid]::NewGuid().ToString('N') + '.zip')
+    $extract = Join-Path $env:TEMP ("best-bar-" + [Guid]::NewGuid().ToString('N'))
 
     try {
         Write-Host "Downloading $Url" -ForegroundColor DarkGray
@@ -99,7 +128,7 @@ function Download-And-ExpandZip {
 
 function Initialize-PortableTools {
     New-Item -ItemType Directory -Path $script:ToolsRoot -Force | Out-Null
-    $headers = @{ 'User-Agent' = 'PermanentBest-Portable-Setup' }
+    $headers = @{ 'User-Agent' = 'BestBar-Portable-Setup' }
 
     if (-not (Test-Path -LiteralPath $script:GitExe)) {
         Write-Host 'Downloading portable Git. Nothing is installed system-wide.' -ForegroundColor Cyan
@@ -129,8 +158,8 @@ function Initialize-PortableTools {
             throw 'Could not locate the current Windows GitHub CLI ZIP.'
         }
 
-        $zip = Join-Path $env:TEMP ("permanent-best-gh-" + [Guid]::NewGuid().ToString('N') + '.zip')
-        $extract = Join-Path $env:TEMP ("permanent-best-gh-" + [Guid]::NewGuid().ToString('N'))
+        $zip = Join-Path $env:TEMP ("best-bar-gh-" + [Guid]::NewGuid().ToString('N') + '.zip')
+        $extract = Join-Path $env:TEMP ("best-bar-gh-" + [Guid]::NewGuid().ToString('N'))
 
         try {
             Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $asset.browser_download_url -OutFile $zip
@@ -184,6 +213,30 @@ function Invoke-Git {
     return [int]$LASTEXITCODE
 }
 
+function Invoke-GitQuiet {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
+
+    $oldPreference = $ErrorActionPreference
+
+    try {
+        # Windows PowerShell can convert native stderr into a PowerShell error
+        # when ErrorActionPreference is Stop. Silence it deliberately for probes.
+        $ErrorActionPreference = 'SilentlyContinue'
+        & $script:GitExe -C $script:ProjectRoot @Arguments *> $null
+        return [int]$LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $oldPreference
+    }
+}
+
+function Test-RemoteBranchExists {
+    param([Parameter(Mandatory = $true)][string]$Branch)
+
+    $code = Invoke-GitQuiet ls-remote --exit-code --heads origin "refs/heads/$Branch"
+    return ($code -eq 0)
+}
+
 function Ensure-GitHubLogin {
     $oldPreference = $ErrorActionPreference
 
@@ -224,6 +277,64 @@ function Ensure-GitHubLogin {
     }
 }
 
+function ConvertTo-RepositorySlug {
+    param([AllowNull()][AllowEmptyString()][string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+
+    $text = $Value.Trim().Replace('\', '/')
+    $text = $text -replace '^https?://github\.com/', ''
+    $text = $text -replace '^ssh://git@github\.com/', ''
+    $text = $text -replace '^git@github\.com:', ''
+    $text = $text.TrimEnd('/')
+    $text = $text -replace '\.git$', ''
+
+    if ($text -match '^([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$') {
+        return "$($Matches[1])/$($Matches[2])"
+    }
+
+    return $null
+}
+
+function Test-GitHubRepository {
+    param([Parameter(Mandatory = $true)][string]$Repository)
+
+    $oldPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        & $script:GhExe repo view $Repository --json nameWithOwner --jq .nameWithOwner *> $null
+        return ($LASTEXITCODE -eq 0)
+    }
+    finally {
+        $ErrorActionPreference = $oldPreference
+    }
+}
+
+function Set-RepositoryContext {
+    param([Parameter(Mandatory = $true)][string]$Repository)
+
+    $slug = ConvertTo-RepositorySlug -Value $Repository
+    if ([string]::IsNullOrWhiteSpace($slug)) {
+        throw "Invalid GitHub repository: $Repository. Use owner/name or a GitHub URL."
+    }
+
+    $script:Repository = $slug
+    $script:RepositoryUrl = "https://github.com/$slug.git"
+    Write-Utf8NoBom -Path $script:RepositoryConfigPath -Content ($slug + [Environment]::NewLine)
+}
+
+function Resolve-Repository {
+    $expectedRepository = 'Catchallcat5382/PermanentBest'
+
+    if (-not (Test-GitHubRepository -Repository $expectedRepository)) {
+        throw "Required GitHub repository '$expectedRepository' was not found or is not accessible. The script will never create a replacement repository."
+    }
+
+    Set-RepositoryContext -Repository $expectedRepository
+}
+
 function Ensure-RepositoryConnected {
     if (-not (Test-Path -LiteralPath (Join-Path $script:ProjectRoot '.git'))) {
         $code = Invoke-Git init -b main
@@ -246,6 +357,8 @@ function Ensure-RepositoryConnected {
         }
     }
 
+    Resolve-Repository
+
     $remoteNames = @(
         & $script:GitExe -C $script:ProjectRoot remote 2>&1 |
             ForEach-Object { $_.ToString().Trim() } |
@@ -263,21 +376,25 @@ function Ensure-RepositoryConnected {
         throw 'Could not configure the GitHub origin remote.'
     }
 
-    & $script:GitExe -C $script:ProjectRoot fetch origin main
-
-    if ($LASTEXITCODE -eq 0) {
-        $code = Invoke-Git reset origin/main
-
-        if ($code -ne 0) {
-            throw 'Could not align the local project with origin/main.'
-        }
-    }
-
     $code = Invoke-Git branch -M main
-
     if ($code -ne 0) {
         throw 'Could not set the branch to main.'
     }
+
+    # Fetch only when the remote already has a main branch. Newly-created
+    # repositories are empty, so attempting to fetch origin/main would fail.
+    if (Test-RemoteBranchExists -Branch 'main') {
+        $fetchCode = Invoke-GitQuiet fetch origin main
+        if ($fetchCode -ne 0) {
+            throw 'Could not fetch the existing origin/main branch.'
+        }
+    }
+    else {
+        Write-Host 'Remote repository is empty. The first push will create main.' -ForegroundColor DarkGray
+    }
+
+    Normalize-ProjectMetadata
+    Write-Host "Repository: $script:Repository" -ForegroundColor DarkGray
 }
 
 function Get-ModVersion {
@@ -286,45 +403,77 @@ function Get-ModVersion {
     return [string]$mod.version
 }
 
+function ConvertTo-NormalizedModVersion {
+    param([Parameter(Mandatory = $true)][string]$Version)
+
+    $value = $Version.Trim()
+    $pattern = '^[vV]?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?(?:\+([0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$'
+
+    if ($value -notmatch $pattern) {
+        throw "Invalid version '$Version'. Use vMAJOR.MINOR.PATCH with an optional suffix, such as v2.0.0, v2.0.0-beta.4, or v2.0.0-rc.1+test."
+    }
+
+    $normalized = "v$($Matches[1]).$($Matches[2]).$($Matches[3])"
+    if (-not [string]::IsNullOrWhiteSpace($Matches[4])) {
+        $normalized += "-$($Matches[4])"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Matches[5])) {
+        $normalized += "+$($Matches[5])"
+    }
+
+    return $normalized
+}
+
 function Set-ModVersion {
     param([Parameter(Mandatory = $true)][string]$Version)
 
-    if ($Version -notmatch '^v(\d+)\.(\d+)\.(\d+)$') {
-        throw 'The version must look like v0.2.1.'
-    }
-
+    $normalized = ConvertTo-NormalizedModVersion -Version $Version
+    $null = $normalized -match '^v(\d+)\.(\d+)\.(\d+)'
     $major = [int]$Matches[1]
     $minor = [int]$Matches[2]
     $patch = [int]$Matches[3]
 
     $modPath = Join-Path $script:ProjectRoot 'mod.json'
     $mod = Get-Content -LiteralPath $modPath -Raw | ConvertFrom-Json
-    $mod.version = $Version
+    $mod.version = $normalized
     $json = $mod | ConvertTo-Json -Depth 20
     Write-Utf8NoBom -Path $modPath -Content ($json + [Environment]::NewLine)
 
     $cmakePath = Join-Path $script:ProjectRoot 'CMakeLists.txt'
-    $cmake = Get-Content -LiteralPath $cmakePath -Raw
-    $cmake = [regex]::Replace(
-        $cmake,
-        'project\(PermanentBest VERSION \d+\.\d+\.\d+\)',
-        "project(PermanentBest VERSION $major.$minor.$patch)"
-    )
-    Write-Utf8NoBom -Path $cmakePath -Content $cmake
+    if (Test-Path -LiteralPath $cmakePath) {
+        $cmake = Get-Content -LiteralPath $cmakePath -Raw
+        $cmake = [regex]::Replace(
+            $cmake,
+            'project\(BestBar VERSION \d+\.\d+\.\d+\)',
+            "project(BestBar VERSION $major.$minor.$patch)"
+        )
+        Write-Utf8NoBom -Path $cmakePath -Content $cmake
+    }
 
-
+    return $normalized
 }
 
 function Increment-PatchVersion {
-    $current = Get-ModVersion
+    $current = ConvertTo-NormalizedModVersion -Version (Get-ModVersion)
+    $null = $current -match '^v(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+.+)?$'
+    $major = [int]$Matches[1]
+    $minor = [int]$Matches[2]
+    $patch = [int]$Matches[3]
+    $prerelease = [string]$Matches[4]
 
-    if ($current -notmatch '^v(\d+)\.(\d+)\.(\d+)$') {
-        throw "Cannot increment invalid version: $current"
+    if (-not [string]::IsNullOrWhiteSpace($prerelease)) {
+        if ($prerelease -match '^(.*\.)(\d+)$') {
+            $next = "v$major.$minor.$patch-$($Matches[1])$([int]$Matches[2] + 1)"
+        }
+        else {
+            $next = "v$major.$minor.$patch-$prerelease.1"
+        }
+    }
+    else {
+        $next = "v$major.$minor.$($patch + 1)"
     }
 
-    $next = "v$($Matches[1]).$($Matches[2]).$([int]$Matches[3] + 1)"
-    Set-ModVersion -Version $next
-    return $next
+    return Set-ModVersion -Version $next
 }
 
 function Get-WorkflowRunIDs {
@@ -336,7 +485,8 @@ function Get-WorkflowRunIDs {
         --jq '.[].databaseId' 2>&1)
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Could not list GitHub Actions runs.`n$($lines -join "`n")"
+        Write-Host 'No previous build workflow runs were found yet. This is normal for a new repository.' -ForegroundColor DarkGray
+        return @()
     }
 
     $ids = New-Object System.Collections.Generic.List[long]
@@ -372,7 +522,10 @@ function Wait-ForRunForCommit {
             --jq '.[].databaseId' 2>&1)
 
         if ($LASTEXITCODE -ne 0) {
-            throw "Could not find the build for commit $HeadSha.`n$($lines -join "`n")"
+            # GitHub can take a few seconds to register build.yml after the
+            # first push to a new repository. Keep polling instead of failing.
+            Start-Sleep -Seconds 5
+            continue
         }
 
         foreach ($line in $lines) {
@@ -425,7 +578,7 @@ function Wait-ForRunSuccess {
 function Test-GeodePackage {
     param([Parameter(Mandatory = $true)][string]$PackagePath)
 
-    $work = Join-Path $env:TEMP ("permanent-best-package-" + [Guid]::NewGuid().ToString('N'))
+    $work = Join-Path $env:TEMP ("best-bar-package-" + [Guid]::NewGuid().ToString('N'))
     $zip = Join-Path $work 'package.zip'
     $extract = Join-Path $work 'extract'
 
@@ -466,8 +619,8 @@ function Store-PackageInReleases {
     New-Item -ItemType Directory -Path $versionDir -Force | Out-Null
     New-Item -ItemType Directory -Path $latestDir -Force | Out-Null
 
-    $versionedPackage = Join-Path $versionDir "PermanentBest-$Version.geode"
-    $latestPackage = Join-Path $latestDir 'PermanentBest.geode'
+    $versionedPackage = Join-Path $versionDir "BestBar-$Version.geode"
+    $latestPackage = Join-Path $latestDir 'BestBar.geode'
 
     Copy-Item -LiteralPath $PackagePath -Destination $versionedPackage -Force
     Copy-Item -LiteralPath $PackagePath -Destination $latestPackage -Force
@@ -519,23 +672,19 @@ function Install-GeodePackage {
     $modsDir = Join-Path $gameRoot 'geode\mods'
     New-Item -ItemType Directory -Path $modsDir -Force | Out-Null
 
-    $oldGolden = Join-Path $modsDir 'firee.goldenbest.geode'
-    $oldGoldenDisabled = Join-Path $modsDir 'firee.goldenbest.geode.disabled'
-    if (Test-Path -LiteralPath $oldGolden) {
-        Remove-Item -LiteralPath $oldGoldenDisabled -Force -ErrorAction SilentlyContinue
-        Move-Item -LiteralPath $oldGolden -Destination $oldGoldenDisabled -Force
-        Write-Host 'Disabled firee.goldenbest to prevent progress-label conflicts.' -ForegroundColor Yellow
-    }
-    Remove-Item -LiteralPath (Join-Path $gameRoot 'geode\unzipped\firee.goldenbest') -Recurse -Force -ErrorAction SilentlyContinue
-
     Get-ChildItem -LiteralPath $modsDir -File -ErrorAction SilentlyContinue |
         Where-Object {
-            $_.Name -like 'PermanentBest*.geode' -or
-            $_.Name -like 'catchallcat5382.permanent-best*.geode'
+            $_.Name -like 'BestBar*.geode' -or
+            $_.Name -like 'catchallcat5382.*best*.geode'
         } |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
-    $cacheDir = Join-Path $gameRoot "geode\unzipped\$($script:ModID)"
+    $unzippedDir = Join-Path $gameRoot 'geode\unzipped'
+    Get-ChildItem -LiteralPath $unzippedDir -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like 'catchallcat5382.*best*' } |
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+    $cacheDir = Join-Path $unzippedDir $script:ModID
     Remove-Item -LiteralPath $cacheDir -Recurse -Force -ErrorAction SilentlyContinue
 
     $destination = Join-Path $modsDir "$($script:ModID).geode"
@@ -573,13 +722,23 @@ function Download-BuildArtifact {
 
     New-Item -ItemType Directory -Path $download -Force | Out-Null
 
-    & $script:GhExe run download $RunID `
-        --repo $script:Repository `
-        --name 'PermanentBest-Windows' `
-        --dir $download
+    $artifactNames = @('BestBar-Windows', 'PermanentBest-Windows')
+    $downloaded = $false
 
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Could not download the Windows build artifact.'
+    foreach ($artifactName in $artifactNames) {
+        & $script:GhExe run download $RunID `
+            --repo $script:Repository `
+            --name $artifactName `
+            --dir $download
+
+        if ($LASTEXITCODE -eq 0) {
+            $downloaded = $true
+            break
+        }
+    }
+
+    if (-not $downloaded) {
+        throw 'Could not download the Windows build artifact from PermanentBest.'
     }
 
     $package = Get-ChildItem -LiteralPath $download -Recurse -Filter *.geode |
@@ -599,6 +758,7 @@ function Download-BuildArtifact {
 function Commit-And-Push {
     param([Parameter(Mandatory = $true)][string]$Message)
 
+    $script:LastCommitCreated = $false
     Normalize-ProjectMetadata
 
     $code = Invoke-Git add --all
@@ -616,6 +776,7 @@ function Commit-And-Push {
         if ($code -ne 0) {
             throw 'Git commit failed.'
         }
+        $script:LastCommitCreated = $true
     }
     elseif ($diffExit -ne 0) {
         throw 'Git could not inspect staged changes.'
@@ -624,7 +785,20 @@ function Commit-And-Push {
     $code = Invoke-Git push -u origin main
 
     if ($code -ne 0) {
-        throw 'Git push failed.'
+        if (-not (Test-RemoteBranchExists -Branch 'main')) {
+            throw 'Git could not create the first origin/main branch. Check the repository permission and origin URL shown above.'
+        }
+
+        Write-Host 'The first push was rejected. Trying a safe rebase against origin/main...' -ForegroundColor Yellow
+        $pullCode = Invoke-Git pull --rebase origin main --allow-unrelated-histories
+        if ($pullCode -ne 0) {
+            throw 'Git push failed, and the project could not be rebased onto origin/main.'
+        }
+
+        $code = Invoke-Git push -u origin main
+        if ($code -ne 0) {
+            throw 'Git push failed.'
+        }
     }
 
     $headLines = @(& $script:GitExe -C $script:ProjectRoot rev-parse HEAD 2>&1)

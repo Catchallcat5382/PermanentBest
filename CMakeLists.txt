@@ -4,14 +4,14 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-project(PermanentBest VERSION 1.1.3)
+project(BestBar VERSION 2.0.0)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_compile_definitions(
     ${PROJECT_NAME}
-    PRIVATE GEODE_MOD_ID="catchallcat5382.permanent-best"
+    PRIVATE GEODE_MOD_ID="catchallcat5382.best-bar"
 )
 
 if (NOT DEFINED ENV{GEODE_SDK})

@@ -3,11 +3,11 @@
     "gd":  {
                "win":  "2.2081"
            },
-    "id":  "catchallcat5382.permanent-best",
-    "name":  "Permanent Best",
-    "version":  "v1.1.3",
+    "id":  "catchallcat5382.best-bar",
+    "name":  "Best Bar",
+    "version":  "v2.0.0-beta.5",
     "developer":  "Catchallcat5382",
-    "description":  "Permanently paints your saved best onto the progress bar, flashes when you pass it, and adds a separate Gold Speedrun mode for platformer levels.",
+    "description":  "Gold progress, runs, and custom practice.",
     "links":  {
                   "community":  "https://discord.gg/ZqC32Bn68P",
                   "homepage":  "https://github.com/Catchallcat5382/PermanentBest",
@@ -21,54 +21,83 @@
                  "gameplay",
                  "enhancement",
                  "utility",
-                 "offline"
+                 "online"
              ],
+    "resources":  {
+                      "sprites":  [
+                                      "resources/bestbar-track.png",
+                                      "resources/bestbar-gold-fill.png",
+                                      "resources/bestbar-glow.png",
+                                      "resources/bestbar-mask.png",
+                                      "resources/bestbar-shine.png",
+                                      "resources/bestbar-spark.png",
+                                      "resources/bestbar-speedrun-button.png",
+                                      "resources/bestbar-speedrun-glow.png",
+                                      "resources/bestbar-check.png",
+                                      "resources/bestbar-current-diamond.png",
+                                      "resources/bestbar-current-diamond-gold.png",
+                                      "resources/bestbar-x.png",
+                                      "resources/bestbar-diamond-glow.png",
+                                      "resources/bestbar-leaderboard-icon.png",
+                                      "resources/bestbar-screen-shine.png",
+                                      "resources/bestbar-practice-icon.png"
+                                  ],
+                      "files":  [
+                                    "resources/bestbar-shine.wav"
+                                ]
+                  },
     "settings":  {
                      "enabled":  {
                                      "name":  "Enabled",
-                                     "description":  "Master switch for Permanent Best and Gold Speedrun.",
+                                     "description":  "Master switch for Best Bar and Gold Run.",
                                      "type":  "bool",
                                      "default":  true
                                  },
-                     "show-gold-fill":  {
-                                            "name":  "Show Permanent Gold Bar",
-                                            "description":  "Paint the saved best directly onto the active progress bar. Once you touch the old best, the gold fill follows the current run.",
-                                            "type":  "bool",
-                                            "default":  true
-                                        },
-                     "completed-level-full-gold":  {
-                                                       "name":  "Completed Levels Stay Gold",
-                                                       "description":  "Keep the entire progress bar gold on normal levels that you have completed.",
-                                                       "type":  "bool",
-                                                       "default":  true
-                                                   },
-                     "show-marker":  {
-                                         "name":  "Show Best Marker",
-                                         "description":  "Show a permanent gold marker at the saved best percentage.",
-                                         "type":  "bool",
-                                         "default":  true
-                                     },
+                     "show-best-bar":  {
+                                           "name":  "Full Gold Progress Fill",
+                                           "description":  "Replace the stock red progress fill with a large shiny gold fill. Previously completed 100% levels display a full gold bar immediately; active best-chase attempts fill gold from the left edge to the current percentage.",
+                                           "type":  "bool",
+                                           "default":  true
+                                       },
                      "show-best-label":  {
                                              "name":  "Show Best Text",
-                                             "description":  "Show BEST percentage or normal platformer best time below the progress bar.",
+                                             "description":  "Show BEST under the real progress bar with an X until the saved level percentage is 100%, then show an animated golden checkmark.",
                                              "type":  "bool",
                                              "default":  true
                                          },
+                     "animated-sparkles":  {
+                                               "name":  "Animated Sparkles",
+                                               "description":  "Animate the stronger full-bar glow, clipped shine sweep, ambient sparkles, gold diamond aura, and completion-check effects.",
+                                               "type":  "bool",
+                                               "default":  true
+                                           },
                      "gold-current-label":  {
-                                                "name":  "Gold While Passing Best",
-                                                "description":  "Turn the current percentage or normal platformer timer gold while it is ahead of the saved best.",
+                                                "name":  "Gold Best-Chase Text",
+                                                "description":  "Turn the percent text gold when the current attempt reaches the saved best.",
                                                 "type":  "bool",
                                                 "default":  true
                                             },
                      "gold-flash":  {
-                                        "name":  "Gold Screen Flash",
-                                        "description":  "Show a short gold flash when the old best is reached or a new time is saved.",
+                                        "name":  "Golden Record Flash",
+                                        "description":  "Use a smooth two-pulse gold flash when a record is reached.",
                                         "type":  "bool",
                                         "default":  true
                                     },
                      "gold-shine":  {
-                                        "name":  "Gold Shine Sweep",
-                                        "description":  "Sweep a bright gold-white shine across the screen when a record is reached.",
+                                        "name":  "Performance-Safe Shine and Stars",
+                                        "description":  "Use a lightweight glow pulse and small star burst when a record is passed. The old full-screen shine sweep was removed to prevent gameplay frame hitches.",
+                                        "type":  "bool",
+                                        "default":  true
+                                    },
+                     "settings-ui-key":  {
+                                             "name":  "Settings UI Hotkey",
+                                             "description":  "Optional hotkey to open the quick Best Bar settings popup in-game. Leave blank / None to disable.",
+                                             "type":  "string",
+                                             "default":  ""
+                                         },
+                     "best-sound":  {
+                                        "name":  "Shiny Record Sound",
+                                        "description":  "Play the custom Best Bar chime when you reach or beat a record.",
                                         "type":  "bool",
                                         "default":  true
                                     },
@@ -79,52 +108,177 @@
                                          "default":  true
                                      },
                      "platformer-mode":  {
-                                             "name":  "Normal Platformer Best Timer",
-                                             "description":  "Track the fastest platformer completion time outside Gold Speedrun mode.",
+                                             "name":  "Platformer Best Timer",
+                                             "description":  "Track and display your fastest normal platformer completion time.",
                                              "type":  "bool",
                                              "default":  true
                                          },
-                     "gold-speedrun-mode":  {
-                                                "name":  "Gold Speedrun Mode",
-                                                "description":  "Enable the separate platformer-only speedrun mode with its own records, failures, timer, and Golden Best.",
-                                                "type":  "bool",
-                                                "default":  true
-                                            },
-                     "show-speedrun-button":  {
-                                                  "name":  "Show Pause-Menu Speedrun Button",
-                                                  "description":  "Show the gold practice-style button in the lower-right of the pause menu. It appears locked on non-platformer levels.",
+                     "gold-run-mode":  {
+                                           "name":  "Gold Run Mode",
+                                           "description":  "Enable a separate platformer-only Gold Run speedrun mode with its own records, runs, finishes, and failures.",
+                                           "type":  "bool",
+                                           "default":  true
+                                       },
+                     "show-gold-run-button":  {
+                                                  "name":  "Show Gold Run Button",
+                                                  "description":  "Show a Gold Run button in platformer pause menus and a smaller centered Gold Run button on platformer level pages.",
                                                   "type":  "bool",
                                                   "default":  true
                                               },
-                     "show-speedrun-timer":  {
-                                                 "name":  "Show Gold Speedrun HUD",
-                                                 "description":  "Show the Gold Speedrun timer, Golden Best, run count, finishes, and failures near the top-right.",
+                     "show-gold-run-timer":  {
+                                                 "name":  "Show Gold Run HUD",
+                                                 "description":  "Show the Gold Run timer, Gold Best, run count, finishes, and failures near the top-right.",
                                                  "type":  "bool",
                                                  "default":  true
                                              },
                      "save-run-history":  {
                                               "name":  "Save Gold Run History",
-                                              "description":  "Save the newest 20 Gold Speedrun completions and failures separately for every platformer level.",
+                                              "description":  "Save the newest 20 Gold Run completions and failed runs for each level.",
                                               "type":  "bool",
                                               "default":  true
                                           },
+                     "show-leaderboard-button":  {
+                                                     "name":  "Main Menu Leaderboard Button",
+                                                     "description":  "Add the redesigned Geometry Dash-style speedrun leaderboard to the existing right-side menu. Rows show player, time, level name, difficulty, rewards, level ID, and validity.",
+                                                     "type":  "bool",
+                                                     "default":  true
+                                                 },
+                     "leaderboard-name":  {
+                                              "name":  "Leaderboard Name",
+                                              "description":  "Name shown beside your submitted Gold Run times. Maximum 24 characters.",
+                                              "type":  "string",
+                                              "default":  "PLAYER"
+                                          },
+                     "leaderboard-api-url":  {
+                                                 "name":  "Leaderboard API URL",
+                                                 "description":  "Base URL of the included Cloudflare Worker leaderboard. Leave blank to use the fully saved local leaderboard only.",
+                                                 "type":  "string",
+                                                 "default":  ""
+                                             },
+                     "leaderboard-auto-refresh":  {
+                                                      "name":  "Auto-Refresh Leaderboard",
+                                                      "description":  "Refresh the open online leaderboard every 15 seconds.",
+                                                      "type":  "bool",
+                                                      "default":  true
+                                                  },
+                     "leaderboard-safe-mode":  {
+                                                   "name":  "Gold Run Safe Mode",
+                                                   "description":  "Block ranked Gold Runs while a major assist such as noclip, slow motion, speedhack, macro, teleport, or clickbot is loaded. Hitboxes and respawn-delay mods remain allowed.",
+                                                   "type":  "bool",
+                                                   "default":  true
+                                               },
+                     "submit-cheated-runs":  {
+                                                 "name":  "Show Invalid Online Runs",
+                                                 "description":  "Submit completed invalid runs so the leaderboard can display CHEATED / NOT VALID instead of silently hiding them. Invalid runs never replace ranked bests.",
+                                                 "type":  "bool",
+                                                 "default":  true
+                                             },
                      "practice-mode":  {
                                            "name":  "Show in Practice Mode",
-                                           "description":  "Display normal saved-best visuals in practice mode. Practice attempts never overwrite records.",
+                                           "description":  "Display saved-best visuals in practice mode. Practice attempts never overwrite records.",
                                            "type":  "bool",
                                            "default":  false
                                        },
+                     "custom-practice-mode":  {
+                                                  "name":  "Custom Practice Mode",
+                                                  "description":  "Master switch for the custom practice range system. It only activates while playing in Geometry Dash Practice Mode.",
+                                                  "type":  "bool",
+                                                  "default":  true
+                                              },
+                     "custom-practice-pause-button":  {
+                                                          "name":  "Custom Practice Pause Button",
+                                                          "description":  "Show the Practice Range button in the top-left of the pause menu while Custom Practice is active.",
+                                                          "type":  "bool",
+                                                          "default":  true,
+                                                          "enable-if":  "custom-practice-mode"
+                                                      },
+                     "custom-practice-predefined-ranges":  {
+                                                               "name":  "Predefined Start and Target",
+                                                               "description":  "Enable per-level start and target percentages, the pause-menu editor, and automatic start teleporting.",
+                                                               "type":  "bool",
+                                                               "default":  true,
+                                                               "enable-if":  "custom-practice-mode"
+                                                           },
+                     "custom-practice-checkpoint-start":  {
+                                                              "name":  "Checkpoint Sets Start",
+                                                              "description":  "Practice checkpoints stop behaving as respawn checkpoints. Placing one saves your current percentage and Y position as the custom starting point. When disabled, checkpoints are blocked during Custom Practice.",
+                                                              "type":  "bool",
+                                                              "default":  false,
+                                                              "enable-if":  "custom-practice-mode"
+                                                          },
+                     "custom-practice-live-range":  {
+                                                        "name":  "Live Start-to-Current Display",
+                                                        "description":  "Replace the normal practice percentage with START - CURRENT. When disabled it displays the fixed START - TARGET range.",
+                                                        "type":  "bool",
+                                                        "default":  true,
+                                                        "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                    },
+                     "custom-practice-continue-after-target":  {
+                                                                   "name":  "Continue Past Target",
+                                                                   "description":  "Do not stop the attempt at the target. The HUD adds the extra percentage passed, such as 3.37% - 5.98% + 1.02%. This is off by default.",
+                                                                   "type":  "bool",
+                                                                   "default":  false,
+                                                                   "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                               },
+                     "custom-practice-auto-advance-target":  {
+                                                                 "name":  "Move Target Forward",
+                                                                 "description":  "When you survive past the target and later die, save the furthest reached percentage as the new target.",
+                                                                 "type":  "bool",
+                                                                 "default":  true,
+                                                                 "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                             },
+                     "custom-practice-safe-spawn-search":  {
+                                                               "name":  "Search for Safe Spawn Y",
+                                                               "description":  "Try nearby vertical positions when the requested starting point overlaps a collision block. If none are free, the exact requested position is used.",
+                                                               "type":  "bool",
+                                                               "default":  true,
+                                                               "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                           },
+                     "custom-practice-entry-mode":  {
+                                                        "name":  "Range Entry Mode",
+                                                        "description":  "Type Numbers, Preview, or Both. Both opens quick number inputs and also offers the draggable ghost preview.",
+                                                        "type":  "string",
+                                                        "default":  "Both",
+                                                        "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                    },
+                     "custom-practice-set-start-key":  {
+                                                           "name":  "Set Start Hotkey",
+                                                           "description":  "Set the current location as the start while playing. Examples: F6, F7, RSHIFT, E.",
+                                                           "type":  "string",
+                                                           "default":  "F6",
+                                                           "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                       },
+                     "custom-practice-set-end-key":  {
+                                                         "name":  "Set Target Hotkey",
+                                                         "description":  "Set the current location as the target while playing.",
+                                                         "type":  "string",
+                                                         "default":  "F7",
+                                                         "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                     },
+                     "custom-practice-restart-key":  {
+                                                         "name":  "Restart Range Hotkey",
+                                                         "description":  "Restart the current custom practice range from its saved start.",
+                                                         "type":  "string",
+                                                         "default":  "F8",
+                                                         "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
+                                                     },
                      "test-mode":  {
                                        "name":  "Show in Start Position/Test Mode",
-                                       "description":  "Display normal saved-best visuals during editor test or start-position attempts. Test attempts never overwrite records.",
+                                       "description":  "Display saved-best visuals in editor tests. Test attempts never overwrite records.",
                                        "type":  "bool",
                                        "default":  false
                                    },
                      "best-color":  {
-                                        "name":  "Gold Color",
-                                        "description":  "Color used for the permanent bar, marker, Golden Best timer, labels, and flash.",
+                                        "name":  "Best Bar Color",
+                                        "description":  "Color used for the fill, sparkles, labels, Gold Run HUD, and record flash.",
                                         "type":  "color",
                                         "default":  "#FFD740"
                                     }
-                 }
+                 },
+    "dependencies":  {
+                         "legowiifun.cheat_api":  {
+                                                      "version":  "\u003e=1.2.3",
+                                                      "required":  false
+                                                  }
+                     }
 }

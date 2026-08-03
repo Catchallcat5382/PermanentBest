@@ -1,0 +1,12 @@
+BEST BAR v1.2.3 - REAL PROGRESS BAR REDESIGN
+
+- Removed the separate compact mini bar that appeared under the stock progress bar.
+- The real Geometry Dash progress fill now grows gold smoothly from 0% to 100%.
+- Added a permanent animated gold tick at the saved best percentage.
+- At a saved 100%, the tick becomes a pulsing gold completion check.
+- Added a gold glow and repeating shine across the real bar.
+- New-best effects still include the two-pulse flash, sweeping light, star burst, label pulse, and custom chime.
+- Replaced the oversized medal-style Gold Run icon with a Practice-style green circular button.
+- Only the center diamond is gold.
+- The button is smaller, higher, and moved inward so it does not cover the SFX slider or other pause-menu UI.
+- All PNG and WAV resources are included in mod.json.

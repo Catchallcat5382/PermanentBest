@@ -1,0 +1,13 @@
+BEST BAR v1.2.1 - UI FIXES
+
+This update directly addresses the screenshots from v1.2.0:
+
+1. The mod logo was completely rebuilt for small Geode card display.
+2. The saved-best bar is no longer overlaid in the center of the stock bar.
+3. The saved-best bar now sits underneath, is shorter, thicker, outlined, glowing, and clearly gold.
+4. The actual current-progress fill gets a gold overlay after the attempt reaches the previous best.
+5. Sparkles, shine sweeps, flashes, and star bursts are larger and more visible.
+6. The Gold Run button is now a 108-unit button instead of the tiny 0.27-scale icon.
+7. The Gold Run icon, glow, ACTIVE/RUN labels, lock, and pause-menu placement were redesigned.
+
+Build using BUILD.bat or the included GitHub workflow.

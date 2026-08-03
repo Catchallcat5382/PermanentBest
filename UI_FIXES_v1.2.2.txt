@@ -1,0 +1,15 @@
+BEST BAR v1.2.2 - REAL BAR + GOLD RUN UI FIX
+
+This build matches the latest screenshots and feedback:
+
+1. Gold Run is no longer a huge medal that covers the pause menu.
+2. It now matches the normal Practice button size and green circular style.
+3. Only the diamond inside the button is gold.
+4. The button is moved higher and inward, away from the SFX slider and Scan Level UI.
+5. The separate random mini bar has been removed.
+6. The real top progress bar gradually fills with gold during the run.
+7. A permanent gold tick marks the saved best percentage.
+8. A saved 100% displays a pulsing gold completion check.
+9. Shine sweeps, marker pulse, sparkles, Gold Run active pulse, and completion effects are clearly visible.
+
+Build using BUILD.bat or the included GitHub workflow.
