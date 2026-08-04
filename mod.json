@@ -5,9 +5,9 @@
            },
     "id":  "catchallcat5382.best-bar",
     "name":  "Best Bar",
-    "version":  "v2.0.0-beta.6",
+    "version":  "v1.8.1",
     "developer":  "Catchallcat5382",
-    "description":  "Gold progress, runs, and custom practice.",
+    "description":  "Best Bar with platformer Gold Runs, stock-frame alignment, full-range live progress, and corrected thin centered gold-fill rendering.",
     "links":  {
                   "community":  "https://discord.gg/ZqC32Bn68P",
                   "homepage":  "https://github.com/Catchallcat5382/PermanentBest",
@@ -38,9 +38,7 @@
                                       "resources/bestbar-current-diamond-gold.png",
                                       "resources/bestbar-x.png",
                                       "resources/bestbar-diamond-glow.png",
-                                      "resources/bestbar-leaderboard-icon.png",
-                                      "resources/bestbar-screen-shine.png",
-                                      "resources/bestbar-practice-icon.png"
+                                      "resources/bestbar-leaderboard-icon.png"
                                   ],
                       "files":  [
                                     "resources/bestbar-shine.wav"
@@ -179,89 +177,6 @@
                                            "type":  "bool",
                                            "default":  false
                                        },
-                     "custom-practice-mode":  {
-                                                  "name":  "Custom Practice Mode",
-                                                  "description":  "Master switch for the custom practice range system. It only activates while playing in Geometry Dash Practice Mode.",
-                                                  "type":  "bool",
-                                                  "default":  true
-                                              },
-                     "custom-practice-pause-button":  {
-                                                          "name":  "Custom Practice Pause Button",
-                                                          "description":  "Show the Practice Range button in the top-left of the pause menu while Custom Practice is active.",
-                                                          "type":  "bool",
-                                                          "default":  true,
-                                                          "enable-if":  "custom-practice-mode"
-                                                      },
-                     "custom-practice-predefined-ranges":  {
-                                                               "name":  "Predefined Start and Target",
-                                                               "description":  "Enable per-level start and target percentages, the pause-menu editor, and automatic start teleporting.",
-                                                               "type":  "bool",
-                                                               "default":  true,
-                                                               "enable-if":  "custom-practice-mode"
-                                                           },
-                     "custom-practice-checkpoint-start":  {
-                                                              "name":  "Checkpoint Sets Start",
-                                                              "description":  "Practice checkpoints stop behaving as respawn checkpoints. Placing one saves your current percentage and Y position as the custom starting point. When disabled, checkpoints are blocked during Custom Practice.",
-                                                              "type":  "bool",
-                                                              "default":  false,
-                                                              "enable-if":  "custom-practice-mode"
-                                                          },
-                     "custom-practice-live-range":  {
-                                                        "name":  "Live Start-to-Current Display",
-                                                        "description":  "Replace the normal practice percentage with START - CURRENT. When disabled it displays the fixed START - TARGET range.",
-                                                        "type":  "bool",
-                                                        "default":  true,
-                                                        "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                    },
-                     "custom-practice-continue-after-target":  {
-                                                                   "name":  "Continue Past Target",
-                                                                   "description":  "Do not stop the attempt at the target. The HUD adds the extra percentage passed, such as 3.37% - 5.98% + 1.02%. This is off by default.",
-                                                                   "type":  "bool",
-                                                                   "default":  false,
-                                                                   "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                               },
-                     "custom-practice-auto-advance-target":  {
-                                                                 "name":  "Move Target Forward",
-                                                                 "description":  "When you survive past the target and later die, save the furthest reached percentage as the new target.",
-                                                                 "type":  "bool",
-                                                                 "default":  true,
-                                                                 "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                             },
-                     "custom-practice-safe-spawn-search":  {
-                                                               "name":  "Search for Safe Spawn Y",
-                                                               "description":  "Try nearby vertical positions when the requested starting point overlaps a collision block. If none are free, the exact requested position is used.",
-                                                               "type":  "bool",
-                                                               "default":  true,
-                                                               "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                           },
-                     "custom-practice-entry-mode":  {
-                                                        "name":  "Range Entry Mode",
-                                                        "description":  "Type Numbers, Preview, or Both. Both opens quick number inputs and also offers the draggable ghost preview.",
-                                                        "type":  "string",
-                                                        "default":  "Both",
-                                                        "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                    },
-                     "custom-practice-set-start-key":  {
-                                                           "name":  "Set Start Hotkey",
-                                                           "description":  "Set the current location as the start while playing. Examples: F6, F7, RSHIFT, E.",
-                                                           "type":  "string",
-                                                           "default":  "F6",
-                                                           "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                       },
-                     "custom-practice-set-end-key":  {
-                                                         "name":  "Set Target Hotkey",
-                                                         "description":  "Set the current location as the target while playing.",
-                                                         "type":  "string",
-                                                         "default":  "F7",
-                                                         "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                     },
-                     "custom-practice-restart-key":  {
-                                                         "name":  "Restart Range Hotkey",
-                                                         "description":  "Restart the current custom practice range from its saved start.",
-                                                         "type":  "string",
-                                                         "default":  "F8",
-                                                         "enable-if":  "custom-practice-mode \u0026\u0026 custom-practice-predefined-ranges"
-                                                     },
                      "test-mode":  {
                                        "name":  "Show in Start Position/Test Mode",
                                        "description":  "Display saved-best visuals in editor tests. Test attempts never overwrite records.",
@@ -277,8 +192,8 @@
                  },
     "dependencies":  {
                          "legowiifun.cheat_api":  {
-                                                      "version":  "\u003e=v1.2.3",
-                                                      "required":  true
+                                                      "version":  "\u003e=1.2.3",
+                                                      "required":  false
                                                   }
                      }
 }

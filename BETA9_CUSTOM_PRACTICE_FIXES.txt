@@ -1,0 +1,6 @@
+BETA 9 CUSTOM PRACTICE FIXES
+- smaller top-left Practice Range pause button
+- improved practice icon
+- popup and preview now swallow touches to block clicking behind the UI
+- cleaner custom practice popup layout
+- checkpoint-disabled spam removed; only configured hotkeys should control the range

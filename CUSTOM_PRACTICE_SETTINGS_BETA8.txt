@@ -1,0 +1,17 @@
+BEST BAR v2.0.0-beta.8
+
+Custom Practice settings are now placed FIRST and split into real Geode title sections:
+- CUSTOM PRACTICE - MAIN
+- CUSTOM PRACTICE - FIVE MAIN OPTIONS
+- CUSTOM PRACTICE - RANGE BEHAVIOR
+- CUSTOM PRACTICE - RANGE EDITOR
+- CUSTOM PRACTICE - HOTKEYS
+
+The Practice Range pause button is visible whenever the master setting is enabled.
+Outside Practice Mode it says ENTER PRACTICE. Inside Practice Mode it says PRACTICE RANGE.
+
+The old free-text Entry Mode setting was replaced by two clear toggles:
+- Show Number Entry Editor
+- Show Ghost Preview Editor
+
+Open Geode > Installed Mods > Best Bar > Settings.

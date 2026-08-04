@@ -8,7 +8,6 @@
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/TextInput.hpp>
 #include <Geode/cocos/extensions/GUI/CCControlExtension/CCScale9Sprite.h>
 
 #if __has_include(<legowiifun.cheat_api/include/cheatAPI.hpp>)
@@ -489,44 +488,6 @@ namespace {
         return fmt::format("gold-run-history-{}", stableLevelSuffix(level));
     }
 
-    std::string customPracticeStartKey(GJGameLevel* level) {
-        return fmt::format("custom-practice-start-{}", stableLevelSuffix(level));
-    }
-
-    std::string customPracticeEndKey(GJGameLevel* level) {
-        return fmt::format("custom-practice-end-{}", stableLevelSuffix(level));
-    }
-
-    std::string customPracticeStartYKey(GJGameLevel* level) {
-        return fmt::format("custom-practice-start-y-{}", stableLevelSuffix(level));
-    }
-
-    std::string customPracticeEndYKey(GJGameLevel* level) {
-        return fmt::format("custom-practice-end-y-{}", stableLevelSuffix(level));
-    }
-
-    std::string customPracticeLogsKey(GJGameLevel* level) {
-        return fmt::format("custom-practice-logs-{}", stableLevelSuffix(level));
-    }
-
-    float clampPracticePercent(float value) {
-        if (!std::isfinite(value)) return 0.0f;
-        return std::clamp(value, 0.0f, 100.0f);
-    }
-
-    std::string formatPracticePercent(float value, bool decimals) {
-        value = clampPracticePercent(value);
-        if (decimals) return fmt::format("{:.2f}%", value);
-        return fmt::format("{}%", static_cast<int>(std::lround(value)));
-    }
-
-    std::string normalizedPracticeEntryMode() {
-        auto mode = lowerCopy(settingString("custom-practice-entry-mode", "both"));
-        if (mode.find("preview") != std::string::npos && mode.find("both") == std::string::npos) return "preview";
-        if (mode.find("number") != std::string::npos || mode.find("direct") != std::string::npos) return "numbers";
-        return "both";
-    }
-
     std::string formatTime(int totalMilliseconds) {
         if (totalMilliseconds <= 0) return "--:--.---";
 
@@ -593,10 +554,10 @@ namespace {
     constexpr char const* LAYOUT_DEBUG_FLAG = "BestBarLayoutDebug.flag";
 
     bool layoutDebugEnabled() {
-        std::error_code error;
-        auto temp = std::filesystem::temp_directory_path(error);
-        if (error || temp.empty()) return false;
-        return std::filesystem::exists(temp / LAYOUT_DEBUG_FLAG, error) && !error;
+        auto temp = std::getenv("TEMP");
+        if (!temp || !*temp) temp = std::getenv("TMP");
+        if (!temp || !*temp) return false;
+        return std::filesystem::exists(std::filesystem::path(temp) / LAYOUT_DEBUG_FLAG);
     }
 
 }
@@ -779,31 +740,11 @@ public:
 
         bool settingsKeyDownLast = false;
 
-        bool customPracticeLoaded = false;
-        bool customPracticeNeedsTeleport = false;
-        bool customPracticeCompleted = false;
-        bool customPracticeTargetAnnounced = false;
-        bool customPracticeStartKeyDownLast = false;
-        bool customPracticeEndKeyDownLast = false;
-        bool customPracticeRestartKeyDownLast = false;
-        bool customPracticePercentLabelWasVisible = true;
-        float customPracticeStartPercent = 0.0f;
-        float customPracticeEndPercent = 100.0f;
-        float customPracticeStartY = 0.0f;
-        float customPracticeEndY = 0.0f;
-        float customPracticeMaxReached = 0.0f;
-        float customPracticePreviewPercent = 0.0f;
-        float customPracticePreviewYOffset = 0.0f;
-        int customPracticeAttempts = 0;
-        std::vector<std::string> customPracticeSessionLogs;
-
         CCLabelBMFont* bestLabel = nullptr;
         CCLabelBMFont* goldRunTimerLabel = nullptr;
         CCLabelBMFont* goldRunBestLabel = nullptr;
         CCLabelBMFont* goldRunStatsLabel = nullptr;
         CCLabelBMFont* bannerLabel = nullptr;
-        CCLabelBMFont* customPracticeLabel = nullptr;
-        CCLabelBMFont* customPracticeTargetLabel = nullptr;
 
         async::TaskHolder<web::WebResponse> leaderboardSubmitTask;
     };
@@ -859,358 +800,7 @@ public:
         resetLevel();
     }
 
-    bool isCustomPracticeEnabled() const {
-        return settingEnabled("custom-practice-mode", true);
-    }
-
-    bool isCustomPracticeActive() const {
-        return isCustomPracticeEnabled() && m_isPracticeMode && m_level != nullptr;
-    }
-
-    float getCustomPracticeStartPercent() {
-        loadCustomPracticeConfig();
-        return m_fields->customPracticeStartPercent;
-    }
-
-    float getCustomPracticeEndPercent() {
-        loadCustomPracticeConfig();
-        return m_fields->customPracticeEndPercent;
-    }
-
-    float getCustomPracticeStartY() {
-        loadCustomPracticeConfig();
-        return m_fields->customPracticeStartY;
-    }
-
-    float getCustomPracticeEndY() {
-        loadCustomPracticeConfig();
-        return m_fields->customPracticeEndY;
-    }
-
-    float getCustomPracticeCurrentPercent() {
-        return clampPracticePercent(readLiveProgressRatio() * 100.0f);
-    }
-
-    bool customPracticeUsesDecimals() const {
-        return m_decimalPercentage;
-    }
-
-    std::string getCustomPracticeRecentLogs() {
-        std::vector<std::string> entries = m_fields->customPracticeSessionLogs;
-        if (entries.empty() && m_level) {
-            auto saved = Mod::get()->getSavedValue<std::string>(customPracticeLogsKey(m_level), "");
-            std::stringstream stream(saved);
-            std::string entry;
-            while (std::getline(stream, entry, ';')) {
-                if (!entry.empty()) entries.push_back(entry);
-            }
-        }
-        if (entries.empty()) return "No attempts logged yet.";
-        std::ostringstream out;
-        auto count = entries.size();
-        auto first = count > 4 ? count - 4 : 0;
-        for (size_t i = first; i < count; ++i) {
-            if (i != first) out << "\n";
-            out << entries[i];
-        }
-        return out.str();
-    }
-
-    void setCustomPracticeRange(float startPercent, float endPercent, float startY, float endY, bool restartNow) {
-        loadCustomPracticeConfig();
-        startPercent = clampPracticePercent(startPercent);
-        endPercent = clampPracticePercent(endPercent);
-        if (endPercent <= startPercent + 0.01f) {
-            endPercent = std::min(100.0f, startPercent + 1.0f);
-            if (endPercent <= startPercent) startPercent = std::max(0.0f, endPercent - 1.0f);
-        }
-
-        m_fields->customPracticeStartPercent = startPercent;
-        m_fields->customPracticeEndPercent = endPercent;
-        m_fields->customPracticeStartY = std::isfinite(startY) ? startY : 0.0f;
-        m_fields->customPracticeEndY = std::isfinite(endY) ? endY : 0.0f;
-        saveCustomPracticeConfig();
-        m_fields->customPracticeCompleted = false;
-        m_fields->customPracticeTargetAnnounced = false;
-        m_fields->customPracticeMaxReached = startPercent;
-        showBanner(fmt::format("PRACTICE {:.2f}% - {:.2f}%", startPercent, endPercent));
-        if (restartNow && isCustomPracticeActive()) resetLevel();
-    }
-
-    void setCustomPracticeStartFromCurrent(bool restartNow = false) {
-        loadCustomPracticeConfig();
-        auto current = getCustomPracticeCurrentPercent();
-        auto y = m_player1 ? m_player1->getPositionY() : m_fields->customPracticeStartY;
-        auto end = std::max(m_fields->customPracticeEndPercent, std::min(100.0f, current + 1.0f));
-        setCustomPracticeRange(current, end, y, m_fields->customPracticeEndY, restartNow);
-        showBanner(fmt::format("START SET {:.2f}%", current));
-    }
-
-    void setCustomPracticeEndFromCurrent(bool restartNow = false) {
-        loadCustomPracticeConfig();
-        auto current = std::max(getCustomPracticeCurrentPercent(), m_fields->customPracticeStartPercent + 0.01f);
-        auto y = m_player1 ? m_player1->getPositionY() : m_fields->customPracticeEndY;
-        setCustomPracticeRange(m_fields->customPracticeStartPercent, current, m_fields->customPracticeStartY, y, restartNow);
-        showBanner(fmt::format("TARGET SET {:.2f}%", current));
-    }
-
-    void resetCustomPracticeRange(bool restartNow = true) {
-        float defaultEnd = 100.0f;
-        if (m_level) {
-            auto best = std::max(m_level->getNormalPercent(), Mod::get()->getSavedValue<int>(percentKey(m_level), 0));
-            if (best > 0 && best < 100) defaultEnd = static_cast<float>(best);
-        }
-        setCustomPracticeRange(0.0f, std::max(1.0f, defaultEnd), 0.0f, 0.0f, restartNow);
-        showBanner("PRACTICE RANGE RESET");
-    }
-
-    float customPracticeWorldX(float percent) const {
-        percent = clampPracticePercent(percent);
-        float length = m_endXPosition > 1.0f ? m_endXPosition : m_levelLength;
-        if (length <= 1.0f) length = m_maxObjectX;
-        if (length <= 1.0f) length = 1000.0f;
-        return length * percent / 100.0f;
-    }
-
-    CCPoint getCustomPracticeObjectLayerPosition() const {
-        return m_objectLayer ? m_objectLayer->getPosition() : CCPoint {0.0f, 0.0f};
-    }
-
-    void previewCustomPracticePercent(float percent, float yOffset, CCPoint basePosition) {
-        m_fields->customPracticePreviewPercent = clampPracticePercent(percent);
-        m_fields->customPracticePreviewYOffset = yOffset;
-        if (!m_objectLayer) return;
-        auto win = CCDirector::get()->getWinSize();
-        auto pos = basePosition;
-        pos.x = win.width * 0.50f - customPracticeWorldX(percent);
-        pos.y = basePosition.y + yOffset;
-        m_objectLayer->setPosition(pos);
-    }
-
-    void restoreCustomPracticePreview(CCPoint position) {
-        if (m_objectLayer) m_objectLayer->setPosition(position);
-    }
-
 private:
-    void loadCustomPracticeConfig() {
-        if (m_fields->customPracticeLoaded || !m_level) return;
-        auto mod = Mod::get();
-        float defaultEnd = 100.0f;
-        auto best = std::max(m_level->getNormalPercent(), mod->getSavedValue<int>(percentKey(m_level), 0));
-        if (best > 0 && best < 100) defaultEnd = static_cast<float>(best);
-
-        m_fields->customPracticeStartPercent = clampPracticePercent(
-            mod->getSavedValue<float>(customPracticeStartKey(m_level), 0.0f)
-        );
-        m_fields->customPracticeEndPercent = clampPracticePercent(
-            mod->getSavedValue<float>(customPracticeEndKey(m_level), defaultEnd)
-        );
-        if (m_fields->customPracticeEndPercent <= m_fields->customPracticeStartPercent + 0.01f) {
-            m_fields->customPracticeEndPercent = std::min(100.0f, m_fields->customPracticeStartPercent + 1.0f);
-        }
-        m_fields->customPracticeStartY = mod->getSavedValue<float>(customPracticeStartYKey(m_level), 0.0f);
-        m_fields->customPracticeEndY = mod->getSavedValue<float>(customPracticeEndYKey(m_level), 0.0f);
-        m_fields->customPracticeMaxReached = m_fields->customPracticeStartPercent;
-        m_fields->customPracticeLoaded = true;
-    }
-
-    void saveCustomPracticeConfig() {
-        if (!m_level) return;
-        auto mod = Mod::get();
-        mod->setSavedValue<float>(customPracticeStartKey(m_level), m_fields->customPracticeStartPercent);
-        mod->setSavedValue<float>(customPracticeEndKey(m_level), m_fields->customPracticeEndPercent);
-        mod->setSavedValue<float>(customPracticeStartYKey(m_level), m_fields->customPracticeStartY);
-        mod->setSavedValue<float>(customPracticeEndYKey(m_level), m_fields->customPracticeEndY);
-    }
-
-    bool customPracticePositionBlocked(CCPoint position) const {
-        if (!m_collisionBlocks) return false;
-        CCRect playerRect {position.x - 10.0f, position.y - 14.0f, 20.0f, 28.0f};
-        for (unsigned int i = 0; i < m_collisionBlocks->count(); ++i) {
-            auto object = typeinfo_cast<GameObject*>(m_collisionBlocks->objectAtIndex(i));
-            if (!object || !object->isVisible()) continue;
-            if (playerRect.intersectsRect(object->boundingBox())) return true;
-        }
-        return false;
-    }
-
-    CCPoint findCustomPracticeSafePosition(float percent, float requestedY) const {
-        float x = customPracticeWorldX(percent);
-        float baseY = requestedY;
-        if (!std::isfinite(baseY) || std::abs(baseY) < 0.01f) {
-            baseY = m_player1 ? m_player1->getPositionY() : 105.0f;
-        }
-        if (!settingEnabled("custom-practice-safe-spawn-search", true)) return {x, baseY};
-
-        static constexpr std::array<float, 15> offsets = {
-            0.0f, 18.0f, -18.0f, 36.0f, -36.0f, 54.0f, -54.0f,
-            72.0f, -72.0f, 96.0f, -96.0f, 128.0f, -128.0f, 160.0f, -160.0f
-        };
-        for (float offset : offsets) {
-            CCPoint candidate {x, baseY + offset};
-            if (!customPracticePositionBlocked(candidate)) return candidate;
-        }
-        return {x, baseY};
-    }
-
-    void applyCustomPracticeStart() {
-        if (!isCustomPracticeActive() || !m_player1) return;
-        loadCustomPracticeConfig();
-        auto position = findCustomPracticeSafePosition(
-            m_fields->customPracticeStartPercent,
-            m_fields->customPracticeStartY
-        );
-        m_player1->setPosition(position);
-        if (m_player2 && m_player2->isVisible()) {
-            auto second = position;
-            second.x += 24.0f;
-            m_player2->setPosition(second);
-        }
-        m_fields->customPracticeNeedsTeleport = false;
-        m_fields->customPracticeCompleted = false;
-        m_fields->customPracticeTargetAnnounced = false;
-        m_fields->customPracticeMaxReached = m_fields->customPracticeStartPercent;
-        ++m_fields->customPracticeAttempts;
-    }
-
-    void appendCustomPracticeLog(std::string const& result, float reached) {
-        loadCustomPracticeConfig();
-        auto entry = fmt::format(
-            "#{}  {:.2f}-{:.2f}  {} {:.2f}%",
-            m_fields->customPracticeAttempts,
-            m_fields->customPracticeStartPercent,
-            m_fields->customPracticeEndPercent,
-            result,
-            clampPracticePercent(reached)
-        );
-        m_fields->customPracticeSessionLogs.push_back(entry);
-        if (m_fields->customPracticeSessionLogs.size() > 20) {
-            m_fields->customPracticeSessionLogs.erase(m_fields->customPracticeSessionLogs.begin());
-        }
-
-        if (m_level) {
-            auto mod = Mod::get();
-            auto key = customPracticeLogsKey(m_level);
-            auto history = mod->getSavedValue<std::string>(key, "");
-            if (!history.empty()) history += ";";
-            history += cleanField(entry);
-            int separators = static_cast<int>(std::count(history.begin(), history.end(), ';'));
-            while (separators >= 20) {
-                auto split = history.find(';');
-                if (split == std::string::npos) break;
-                history.erase(0, split + 1);
-                --separators;
-            }
-            mod->setSavedValue<std::string>(key, history);
-        }
-    }
-
-    void refreshCustomPracticeHUD(float currentPercent) {
-        if (!m_fields->customPracticeLabel || !m_fields->customPracticeTargetLabel) return;
-        if (!isCustomPracticeActive() || !settingEnabled("custom-practice-predefined-ranges", true)) {
-            m_fields->customPracticeLabel->setVisible(false);
-            m_fields->customPracticeTargetLabel->setVisible(false);
-            if (m_percentageLabel) m_percentageLabel->setVisible(m_fields->customPracticePercentLabelWasVisible);
-            return;
-        }
-
-        loadCustomPracticeConfig();
-        if (m_percentageLabel) {
-            if (!m_fields->customPracticeLabel->isVisible()) {
-                m_fields->customPracticePercentLabelWasVisible = m_percentageLabel->isVisible();
-            }
-            m_percentageLabel->setVisible(false);
-        }
-
-        bool decimals = customPracticeUsesDecimals();
-        auto startText = formatPracticePercent(m_fields->customPracticeStartPercent, decimals);
-        auto endText = formatPracticePercent(m_fields->customPracticeEndPercent, decimals);
-        auto currentText = formatPracticePercent(currentPercent, decimals);
-        bool continuePast = settingEnabled("custom-practice-continue-after-target", false);
-        bool liveRange = settingEnabled("custom-practice-predefined-ranges", true) && settingEnabled("custom-practice-live-range", true);
-
-        std::string mainText;
-        if (liveRange) {
-            mainText = fmt::format("{} - {}", startText, currentText);
-        }
-        else {
-            mainText = fmt::format("{} - {}", startText, endText);
-        }
-        if (continuePast && currentPercent > m_fields->customPracticeEndPercent) {
-            mainText += fmt::format(" + {}", formatPracticePercent(
-                currentPercent - m_fields->customPracticeEndPercent,
-                decimals
-            ));
-        }
-
-        m_fields->customPracticeLabel->setString(mainText.c_str());
-        m_fields->customPracticeLabel->setVisible(true);
-        m_fields->customPracticeLabel->setColor(
-            currentPercent >= m_fields->customPracticeEndPercent
-                ? ccColor3B {110, 255, 150}
-                : bestColor()
-        );
-
-        auto target = fmt::format("TARGET {}   ATTEMPT {}", endText, m_fields->customPracticeAttempts);
-        m_fields->customPracticeTargetLabel->setString(target.c_str());
-        m_fields->customPracticeTargetLabel->setVisible(true);
-    }
-
-    void handleCustomPracticeHotkeys() {
-#ifdef GEODE_IS_WINDOWS
-        if (!isCustomPracticeActive()) {
-            m_fields->customPracticeStartKeyDownLast = false;
-            m_fields->customPracticeEndKeyDownLast = false;
-            m_fields->customPracticeRestartKeyDownLast = false;
-            return;
-        }
-        int startKey = virtualKeyFromName(settingString("custom-practice-set-start-key", "F6"));
-        int endKey = virtualKeyFromName(settingString("custom-practice-set-end-key", "F7"));
-        int restartKey = virtualKeyFromName(settingString("custom-practice-restart-key", "F8"));
-        auto down = [](int vk) { return vk && (GetAsyncKeyState(vk) & 0x8000) != 0; };
-        bool startDown = down(startKey);
-        bool endDown = down(endKey);
-        bool restartDown = down(restartKey);
-        if (startDown && !m_fields->customPracticeStartKeyDownLast) setCustomPracticeStartFromCurrent(false);
-        if (endDown && !m_fields->customPracticeEndKeyDownLast) setCustomPracticeEndFromCurrent(false);
-        if (restartDown && !m_fields->customPracticeRestartKeyDownLast) {
-            m_fields->pendingBanner = "PRACTICE RANGE RESTART";
-            resetLevel();
-        }
-        m_fields->customPracticeStartKeyDownLast = startDown;
-        m_fields->customPracticeEndKeyDownLast = endDown;
-        m_fields->customPracticeRestartKeyDownLast = restartDown;
-#endif
-    }
-
-    void updateCustomPracticeMode(float) {
-        if (!isCustomPracticeActive()) {
-            refreshCustomPracticeHUD(0.0f);
-            return;
-        }
-        loadCustomPracticeConfig();
-        if (settingEnabled("custom-practice-predefined-ranges", true) && m_fields->customPracticeNeedsTeleport && !m_playerDied) applyCustomPracticeStart();
-
-        float current = getCustomPracticeCurrentPercent();
-        m_fields->customPracticeMaxReached = std::max(m_fields->customPracticeMaxReached, current);
-        refreshCustomPracticeHUD(current);
-        handleCustomPracticeHotkeys();
-
-        if (!settingEnabled("custom-practice-predefined-ranges", true)) return;
-        if (current + 0.001f < m_fields->customPracticeEndPercent) return;
-        if (!m_fields->customPracticeTargetAnnounced) {
-            m_fields->customPracticeTargetAnnounced = true;
-            showBanner("PRACTICE RANGE COMPLETE!");
-            playBestSound();
-        }
-
-        if (settingEnabled("custom-practice-continue-after-target", false)) return;
-        if (m_fields->customPracticeCompleted || m_playerDied || !m_player1) return;
-        m_fields->customPracticeCompleted = true;
-        appendCustomPracticeLog("COMPLETE", current);
-        destroyPlayer(m_player1, nullptr);
-    }
-
     bool shouldShow() const {
         if (!settingEnabled("enabled")) return false;
         if (m_isPracticeMode && !settingEnabled("practice-mode", false)) return false;
@@ -1783,25 +1373,6 @@ private:
         m_fields->bannerLabel->setPosition({winSize.width / 2.0f, winSize.height - 58.0f});
         addChild(m_fields->bannerLabel, 300);
 
-        m_fields->customPracticeLabel = CCLabelBMFont::create("", "bigFont.fnt");
-        if (m_fields->customPracticeLabel) {
-            m_fields->customPracticeLabel->setID("best-bar-custom-practice-label");
-            m_fields->customPracticeLabel->setScale(0.46f);
-            m_fields->customPracticeLabel->setPosition({winSize.width * 0.5f, winSize.height - 22.0f});
-            m_fields->customPracticeLabel->setVisible(false);
-            addChild(m_fields->customPracticeLabel, 410);
-        }
-
-        m_fields->customPracticeTargetLabel = CCLabelBMFont::create("", "bigFont.fnt");
-        if (m_fields->customPracticeTargetLabel) {
-            m_fields->customPracticeTargetLabel->setID("best-bar-custom-practice-target");
-            m_fields->customPracticeTargetLabel->setScale(0.22f);
-            m_fields->customPracticeTargetLabel->setColor({235, 235, 235});
-            m_fields->customPracticeTargetLabel->setPosition({winSize.width * 0.5f, winSize.height - 39.0f});
-            m_fields->customPracticeTargetLabel->setVisible(false);
-            addChild(m_fields->customPracticeTargetLabel, 410);
-        }
-
         updateBestBarLayout();
         m_fields->uiReady = true;
     }
@@ -1871,10 +1442,6 @@ private:
         m_fields->goldVisualActive = false;
         m_fields->pendingGoldShine = false;
         m_fields->diamondWasGold = false;
-        m_fields->customPracticeNeedsTeleport = isCustomPracticeActive();
-        m_fields->customPracticeCompleted = false;
-        m_fields->customPracticeTargetAnnounced = false;
-        m_fields->customPracticeMaxReached = m_fields->customPracticeStartPercent;
         m_fields->bestStatusCompletedShown = false;
         m_fields->goldRunCompleted = false;
         m_fields->goldRunStarted = m_fields->goldRunMode && supportsGoldRun();
@@ -2619,7 +2186,6 @@ public:
     void update(float dt) {
         PlayLayer::update(dt);
         createBestBarUI();
-        updateCustomPracticeMode(dt);
 
         if (!m_level || !shouldShow()) return;
         syncLiveProgress();
@@ -2651,46 +2217,7 @@ public:
 
     void destroyPlayer(PlayerObject* player, GameObject* object) {
         stopGoldShineAnimation();
-        if (isCustomPracticeActive() && player == m_player1 && !m_fields->customPracticeCompleted) {
-            loadCustomPracticeConfig();
-            float reached = std::max(m_fields->customPracticeMaxReached, getCustomPracticeCurrentPercent());
-            bool passedTarget = reached >= m_fields->customPracticeEndPercent;
-            if (settingEnabled("custom-practice-auto-advance-target", true) &&
-                reached > m_fields->customPracticeEndPercent + 0.01f) {
-                m_fields->customPracticeEndPercent = clampPracticePercent(reached);
-                m_fields->customPracticeEndY = player ? player->getPositionY() : m_fields->customPracticeEndY;
-                saveCustomPracticeConfig();
-                showBanner(fmt::format("TARGET MOVED TO {:.2f}%", m_fields->customPracticeEndPercent));
-            }
-            appendCustomPracticeLog(passedTarget ? "PASSED" : "DIED", reached);
-        }
         PlayLayer::destroyPlayer(player, object);
-    }
-
-    CheckpointObject* createCheckpoint() {
-        if (!isCustomPracticeActive()) return PlayLayer::createCheckpoint();
-        if (settingEnabled("custom-practice-checkpoint-start", false)) {
-            setCustomPracticeStartFromCurrent(false);
-            m_fields->pendingBanner = "CHECKPOINT SET AS START";
-        }
-        else {
-            showBanner("CHECKPOINTS DISABLED IN CUSTOM PRACTICE");
-        }
-        m_tryPlaceCheckpoint = false;
-        return nullptr;
-    }
-
-    CheckpointObject* markCheckpoint() {
-        if (!isCustomPracticeActive()) return PlayLayer::markCheckpoint();
-        if (settingEnabled("custom-practice-checkpoint-start", false)) {
-            setCustomPracticeStartFromCurrent(false);
-            m_fields->pendingBanner = "CHECKPOINT SET AS START";
-        }
-        else {
-            showBanner("CHECKPOINTS DISABLED IN CUSTOM PRACTICE");
-        }
-        m_tryPlaceCheckpoint = false;
-        return nullptr;
     }
 
     void setupHasCompleted() {
@@ -2714,13 +2241,8 @@ public:
         syncAttemptState();
         refreshBestBarUI();
         if (outsideGoldRun) showBanner("GOLD RUN ON");
-        else if (isCustomPracticeActive() && settingEnabled("custom-practice-predefined-ranges", true)) {
-            showBanner(fmt::format(
-                "CUSTOM PRACTICE {:.2f}% - {:.2f}%",
-                getCustomPracticeStartPercent(),
-                getCustomPracticeEndPercent()
-            ));
-        }
+
+
     }
 
     void resetLevel() {
@@ -2834,387 +2356,6 @@ public:
         }
         finalizeGoldRunFailureIfNeeded();
         PlayLayer::onQuit();
-    }
-};
-
-class CustomPracticePreviewLayer : public CCLayerColor {
-protected:
-    BestBarPlayLayer* m_play = nullptr;
-    CCLayerColor* m_track = nullptr;
-    CCSprite* m_knob = nullptr;
-    CCSprite* m_ghost = nullptr;
-    CCLabelBMFont* m_percentLabel = nullptr;
-    CCLabelBMFont* m_rangeLabel = nullptr;
-    CCPoint m_originalObjectLayerPosition {0.0f, 0.0f};
-    float m_previewPercent = 0.0f;
-    float m_startPercent = 0.0f;
-    float m_endPercent = 100.0f;
-    float m_yOffset = 0.0f;
-    bool m_dragging = false;
-    float m_trackLeft = 0.0f;
-    float m_trackWidth = 330.0f;
-
-    void updatePreview() {
-        if (!m_play) return;
-        m_previewPercent = clampPracticePercent(m_previewPercent);
-        auto win = CCDirector::get()->getWinSize();
-        if (m_knob) {
-            m_knob->setPosition({m_trackLeft + m_trackWidth * (m_previewPercent / 100.0f), 62.0f});
-        }
-        if (m_ghost) {
-            m_ghost->setPosition({win.width * 0.5f, win.height * 0.5f + m_yOffset});
-        }
-        if (m_percentLabel) {
-            m_percentLabel->setString(fmt::format("PREVIEW {:.2f}%   Y {:+.0f}", m_previewPercent, m_yOffset).c_str());
-        }
-        if (m_rangeLabel) {
-            m_rangeLabel->setString(fmt::format("START {:.2f}%   TARGET {:.2f}%", m_startPercent, m_endPercent).c_str());
-        }
-        m_play->previewCustomPracticePercent(m_previewPercent, m_yOffset, m_originalObjectLayerPosition);
-    }
-
-    void setFromTouch(float x) {
-        m_previewPercent = clampPracticePercent((x - m_trackLeft) / m_trackWidth * 100.0f);
-        updatePreview();
-    }
-
-public:
-    static CustomPracticePreviewLayer* create(BestBarPlayLayer* play) {
-        auto ret = new CustomPracticePreviewLayer();
-        if (ret && ret->init(play)) {
-            ret->autorelease();
-            return ret;
-        }
-        CC_SAFE_DELETE(ret);
-        return nullptr;
-    }
-
-    bool init(BestBarPlayLayer* play) {
-        if (!CCLayerColor::initWithColor({0, 0, 0, 145})) return false;
-        m_play = play;
-        if (!m_play) return false;
-        auto win = CCDirector::get()->getWinSize();
-        m_originalObjectLayerPosition = m_play->getCustomPracticeObjectLayerPosition();
-        m_startPercent = m_play->getCustomPracticeStartPercent();
-        m_endPercent = m_play->getCustomPracticeEndPercent();
-        m_previewPercent = m_startPercent;
-        m_yOffset = 0.0f;
-        m_trackLeft = win.width * 0.5f - m_trackWidth * 0.5f;
-
-        auto title = CCLabelBMFont::create("CUSTOM PRACTICE PREVIEW", "goldFont.fnt");
-        title->setScale(0.54f);
-        title->setPosition({win.width * 0.5f, win.height - 32.0f});
-        addChild(title, 5);
-
-        auto help = CCLabelBMFont::create("Drag the slider to inspect the level. The gold icon is only a client-side ghost.", "bigFont.fnt");
-        help->setScale(0.22f);
-        help->setPosition({win.width * 0.5f, win.height - 55.0f});
-        addChild(help, 5);
-
-        m_track = CCLayerColor::create({255, 255, 255, 125}, m_trackWidth, 6.0f);
-        m_track->setPosition({m_trackLeft, 59.0f});
-        addChild(m_track, 5);
-
-        m_knob = CCSprite::create("bestbar-current-diamond-gold.png"_spr);
-        if (m_knob) {
-            m_knob->setScale(0.42f);
-            addChild(m_knob, 7);
-        }
-
-        m_ghost = CCSprite::create("bestbar-current-diamond-gold.png"_spr);
-        if (m_ghost) {
-            m_ghost->setOpacity(175);
-            m_ghost->setScale(0.72f);
-            addChild(m_ghost, 6);
-        }
-
-        m_percentLabel = CCLabelBMFont::create("", "bigFont.fnt");
-        m_percentLabel->setScale(0.30f);
-        m_percentLabel->setPosition({win.width * 0.5f, 84.0f});
-        addChild(m_percentLabel, 6);
-
-        m_rangeLabel = CCLabelBMFont::create("", "bigFont.fnt");
-        m_rangeLabel->setScale(0.24f);
-        m_rangeLabel->setColor(bestColor());
-        m_rangeLabel->setPosition({win.width * 0.5f, 102.0f});
-        addChild(m_rangeLabel, 6);
-
-        auto menu = CCMenu::create();
-        menu->setPosition({0.0f, 0.0f});
-        addChild(menu, 10);
-
-        auto addButton = [&](char const* text, CCPoint pos, SEL_MenuHandler callback, float scale = 0.62f) {
-            auto sprite = ButtonSprite::create(text);
-            if (!sprite) return;
-            sprite->setScale(scale);
-            auto item = CCMenuItemSpriteExtra::create(sprite, this, callback);
-            if (!item) return;
-            item->setPosition(pos);
-            menu->addChild(item);
-        };
-
-        addButton("SET START", {win.width * 0.5f - 138.0f, 28.0f}, menu_selector(CustomPracticePreviewLayer::onSetStart));
-        addButton("SET TARGET", {win.width * 0.5f - 45.0f, 28.0f}, menu_selector(CustomPracticePreviewLayer::onSetEnd));
-        addButton("SAVE + RESTART", {win.width * 0.5f + 72.0f, 28.0f}, menu_selector(CustomPracticePreviewLayer::onSave));
-        addButton("CLOSE", {win.width * 0.5f + 166.0f, 28.0f}, menu_selector(CustomPracticePreviewLayer::onClose));
-        addButton("Y -", {win.width - 78.0f, win.height * 0.5f - 24.0f}, menu_selector(CustomPracticePreviewLayer::onYDown), 0.54f);
-        addButton("Y +", {win.width - 78.0f, win.height * 0.5f + 24.0f}, menu_selector(CustomPracticePreviewLayer::onYUp), 0.54f);
-        addButton("RESET VIEW", {82.0f, win.height * 0.5f}, menu_selector(CustomPracticePreviewLayer::onResetView), 0.54f);
-
-        setTouchEnabled(true);
-        setKeypadEnabled(true);
-        setTouchMode(kCCTouchesOneByOne);
-        updatePreview();
-        return true;
-    }
-
-    void onSetStart(CCObject*) {
-        m_startPercent = m_previewPercent;
-        if (m_endPercent <= m_startPercent) m_endPercent = std::min(100.0f, m_startPercent + 1.0f);
-        updatePreview();
-    }
-
-    void onSetEnd(CCObject*) {
-        m_endPercent = std::max(m_previewPercent, m_startPercent + 0.01f);
-        updatePreview();
-    }
-
-    void onYDown(CCObject*) {
-        m_yOffset -= 12.0f;
-        updatePreview();
-    }
-
-    void onYUp(CCObject*) {
-        m_yOffset += 12.0f;
-        updatePreview();
-    }
-
-    void onResetView(CCObject*) {
-        m_previewPercent = m_startPercent;
-        m_yOffset = 0.0f;
-        updatePreview();
-    }
-
-    void finishClose(bool save, bool restart) {
-        if (!m_play) {
-            removeFromParentAndCleanup(true);
-            return;
-        }
-        m_play->restoreCustomPracticePreview(m_originalObjectLayerPosition);
-        if (save) {
-            float startY = m_play->getCustomPracticeStartY();
-            float endY = m_play->getCustomPracticeEndY();
-            m_play->setCustomPracticeRange(
-                m_startPercent,
-                m_endPercent,
-                startY + m_yOffset,
-                endY + m_yOffset,
-                restart
-            );
-        }
-        removeFromParentAndCleanup(true);
-    }
-
-    void onSave(CCObject*) {
-        finishClose(true, true);
-    }
-
-    void onClose(CCObject*) {
-        finishClose(false, false);
-    }
-
-    bool ccTouchBegan(CCTouch* touch, CCEvent*) override {
-        if (!touch) return true;
-        auto point = touch->getLocation();
-        CCRect sliderRect {m_trackLeft - 15.0f, 43.0f, m_trackWidth + 30.0f, 38.0f};
-        if (sliderRect.containsPoint(point)) {
-            m_dragging = true;
-            setFromTouch(point.x);
-        }
-        return true;
-    }
-
-    void ccTouchMoved(CCTouch* touch, CCEvent*) override {
-        if (m_dragging && touch) setFromTouch(touch->getLocation().x);
-    }
-
-    void ccTouchEnded(CCTouch*, CCEvent*) override {
-        m_dragging = false;
-    }
-
-    void ccTouchCancelled(CCTouch*, CCEvent*) override {
-        m_dragging = false;
-    }
-
-    void keyBackClicked() override {
-        finishClose(false, false);
-    }
-};
-
-class CustomPracticeRangePopup : public CCLayerColor {
-protected:
-    BestBarPlayLayer* m_play = nullptr;
-    TextInput* m_startInput = nullptr;
-    TextInput* m_endInput = nullptr;
-    TextInput* m_startYInput = nullptr;
-    CCLabelBMFont* m_logLabel = nullptr;
-
-    static float parseInput(TextInput* input, float fallback) {
-        if (!input) return fallback;
-        try {
-            auto value = std::stof(std::string(input->getString().c_str()));
-            return std::isfinite(value) ? value : fallback;
-        }
-        catch (...) {
-            return fallback;
-        }
-    }
-
-public:
-    static CustomPracticeRangePopup* create(BestBarPlayLayer* play) {
-        auto ret = new CustomPracticeRangePopup();
-        if (ret && ret->init(play)) {
-            ret->autorelease();
-            return ret;
-        }
-        CC_SAFE_DELETE(ret);
-        return nullptr;
-    }
-
-    bool init(BestBarPlayLayer* play) {
-        if (!CCLayerColor::initWithColor({0, 0, 0, 130})) return false;
-        m_play = play;
-        if (!m_play) return false;
-        auto win = CCDirector::get()->getWinSize();
-
-        auto panel = CCScale9Sprite::create("GJ_square01.png");
-        panel->setContentSize({430.0f, 275.0f});
-        panel->setPosition(win / 2.0f);
-        addChild(panel, 1);
-
-        auto title = CCLabelBMFont::create("CUSTOM PRACTICE RANGE", "goldFont.fnt");
-        title->setScale(0.58f);
-        title->setPosition({win.width * 0.5f, win.height * 0.5f + 112.0f});
-        addChild(title, 3);
-
-        auto info = CCLabelBMFont::create("Set exact percentages even when GD decimals are hidden.", "bigFont.fnt");
-        info->setScale(0.22f);
-        info->setPosition({win.width * 0.5f, win.height * 0.5f + 88.0f});
-        addChild(info, 3);
-
-        m_startInput = TextInput::create(130.0f, "Start percent");
-        m_startInput->setCommonFilter(geode::CommonFilter::Float);
-        m_startInput->setMaxCharCount(7);
-        m_startInput->setString(fmt::format("{:.2f}", m_play->getCustomPracticeStartPercent()));
-        m_startInput->setPosition({win.width * 0.5f - 78.0f, win.height * 0.5f + 48.0f});
-        addChild(m_startInput, 4);
-
-        m_endInput = TextInput::create(130.0f, "Target percent");
-        m_endInput->setCommonFilter(geode::CommonFilter::Float);
-        m_endInput->setMaxCharCount(7);
-        m_endInput->setString(fmt::format("{:.2f}", m_play->getCustomPracticeEndPercent()));
-        m_endInput->setPosition({win.width * 0.5f + 78.0f, win.height * 0.5f + 48.0f});
-        addChild(m_endInput, 4);
-
-        m_startYInput = TextInput::create(130.0f, "Start Y / 0 auto");
-        m_startYInput->setCommonFilter(geode::CommonFilter::Float);
-        m_startYInput->setMaxCharCount(9);
-        m_startYInput->setString(fmt::format("{:.1f}", m_play->getCustomPracticeStartY()));
-        m_startYInput->setPosition({win.width * 0.5f, win.height * 0.5f + 5.0f});
-        addChild(m_startYInput, 4);
-
-        m_logLabel = CCLabelBMFont::create(m_play->getCustomPracticeRecentLogs().c_str(), "bigFont.fnt");
-        m_logLabel->setScale(0.18f);
-        m_logLabel->setAnchorPoint({0.5f, 1.0f});
-        m_logLabel->setPosition({win.width * 0.5f, win.height * 0.5f - 20.0f});
-        addChild(m_logLabel, 4);
-
-        auto menu = CCMenu::create();
-        menu->setPosition({0.0f, 0.0f});
-        addChild(menu, 5);
-        auto addButton = [&](char const* text, CCPoint pos, SEL_MenuHandler callback, float scale = 0.58f) {
-            auto sprite = ButtonSprite::create(text);
-            if (!sprite) return;
-            sprite->setScale(scale);
-            auto item = CCMenuItemSpriteExtra::create(sprite, this, callback);
-            if (!item) return;
-            item->setPosition(pos);
-            menu->addChild(item);
-        };
-
-        addButton("CURRENT START", {win.width * 0.5f - 122.0f, win.height * 0.5f - 62.0f}, menu_selector(CustomPracticeRangePopup::onCurrentStart), 0.52f);
-        addButton("CURRENT TARGET", {win.width * 0.5f, win.height * 0.5f - 62.0f}, menu_selector(CustomPracticeRangePopup::onCurrentEnd), 0.52f);
-        if (normalizedPracticeEntryMode() != "numbers" &&
-            !Mod::get()->getSavedValue<bool>("custom-practice-hide-preview-choice", false)) {
-            addButton("PREVIEW", {win.width * 0.5f + 122.0f, win.height * 0.5f - 62.0f}, menu_selector(CustomPracticeRangePopup::onPreview), 0.52f);
-        }
-        addButton("SAVE + RESTART", {win.width * 0.5f - 92.0f, win.height * 0.5f - 105.0f}, menu_selector(CustomPracticeRangePopup::onSave));
-        addButton("RESET", {win.width * 0.5f + 24.0f, win.height * 0.5f - 105.0f}, menu_selector(CustomPracticeRangePopup::onReset));
-        addButton("CLOSE", {win.width * 0.5f + 104.0f, win.height * 0.5f - 105.0f}, menu_selector(CustomPracticeRangePopup::onClose));
-
-        if (normalizedPracticeEntryMode() == "both") {
-            auto hide = CCLabelBMFont::create("Hide Preview next time", "bigFont.fnt");
-            hide->setScale(0.18f);
-            auto hideItem = CCMenuItemSpriteExtra::create(hide, this, menu_selector(CustomPracticeRangePopup::onHidePreview));
-            hideItem->setPosition({win.width * 0.5f + 135.0f, win.height * 0.5f + 8.0f});
-            menu->addChild(hideItem);
-        }
-
-        setTouchEnabled(true);
-        setKeypadEnabled(true);
-        return true;
-    }
-
-    void onCurrentStart(CCObject*) {
-        if (!m_play) return;
-        m_startInput->setString(fmt::format("{:.2f}", m_play->getCustomPracticeCurrentPercent()));
-    }
-
-    void onCurrentEnd(CCObject*) {
-        if (!m_play) return;
-        m_endInput->setString(fmt::format("{:.2f}", m_play->getCustomPracticeCurrentPercent()));
-    }
-
-    void onPreview(CCObject*) {
-        if (!m_play) return;
-        float start = parseInput(m_startInput, m_play->getCustomPracticeStartPercent());
-        float end = parseInput(m_endInput, m_play->getCustomPracticeEndPercent());
-        float y = parseInput(m_startYInput, m_play->getCustomPracticeStartY());
-        m_play->setCustomPracticeRange(start, end, y, m_play->getCustomPracticeEndY(), false);
-        auto preview = CustomPracticePreviewLayer::create(m_play);
-        if (preview) CCDirector::get()->getRunningScene()->addChild(preview, 20'100);
-        removeFromParentAndCleanup(true);
-    }
-
-    void onHidePreview(CCObject*) {
-        Mod::get()->setSavedValue<bool>("custom-practice-hide-preview-choice", true);
-        FLAlertLayer::create("Custom Practice", "Preview has been hidden for future opens. Change Entry Mode in mod settings to bring it back.", "OK")->show();
-    }
-
-    void onSave(CCObject*) {
-        if (!m_play) return;
-        float start = parseInput(m_startInput, m_play->getCustomPracticeStartPercent());
-        float end = parseInput(m_endInput, m_play->getCustomPracticeEndPercent());
-        float y = parseInput(m_startYInput, m_play->getCustomPracticeStartY());
-        m_play->setCustomPracticeRange(start, end, y, m_play->getCustomPracticeEndY(), true);
-        removeFromParentAndCleanup(true);
-    }
-
-    void onReset(CCObject*) {
-        if (m_play) m_play->resetCustomPracticeRange(true);
-        removeFromParentAndCleanup(true);
-    }
-
-    void onClose(CCObject*) {
-        removeFromParentAndCleanup(true);
-    }
-
-    bool ccTouchBegan(CCTouch*, CCEvent*) override {
-        return true;
-    }
-
-    void keyBackClicked() override {
-        onClose(nullptr);
     }
 };
 
@@ -3849,53 +2990,18 @@ class $modify(BestBarPauseLayer, PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
 
-        for (auto id : {"best-bar-gold-run-button", "best-bar-gold-run-status", "best-bar-gold-run-menu",
-                        "best-bar-custom-practice-menu", "best-bar-custom-practice-button",
-                        "best-bar-custom-practice-button-label"}) {
+        for (auto id : {"best-bar-gold-run-button", "best-bar-gold-run-status", "best-bar-gold-run-menu"}) {
             if (auto node = getChildByIDRecursive(id)) {
                 node->removeFromParentAndCleanup(true);
             }
         }
 
+        if (!settingEnabled("enabled") || !settingEnabled("show-gold-run-button")) return;
+
         auto play = PlayLayer::get();
         if (!play) return;
         auto bestBar = static_cast<BestBarPlayLayer*>(play);
         auto winSize = CCDirector::get()->getWinSize();
-
-        if (bestBar->isCustomPracticeActive() && settingEnabled("custom-practice-predefined-ranges", true) && settingEnabled("custom-practice-pause-button", true)) {
-            auto practiceMenu = CCMenu::create();
-            practiceMenu->setID("best-bar-custom-practice-menu");
-            practiceMenu->setPosition({0.0f, 0.0f});
-            addChild(practiceMenu, 650);
-
-            auto practiceSprite = CircleButtonSprite::createWithSprite(
-                "bestbar-practice-icon.png"_spr,
-                0.86f,
-                CircleBaseColor::Green,
-                CircleBaseSize::Medium
-            );
-            if (practiceSprite) {
-                auto practiceItem = CCMenuItemSpriteExtra::create(
-                    practiceSprite,
-                    this,
-                    menu_selector(BestBarPauseLayer::onCustomPractice)
-                );
-                practiceItem->setID("best-bar-custom-practice-button");
-                practiceItem->setPosition({54.0f, winSize.height - 54.0f});
-                practiceMenu->addChild(practiceItem);
-
-                auto practiceLabel = CCLabelBMFont::create("PRACTICE RANGE", "goldFont.fnt");
-                if (practiceLabel) {
-                    practiceLabel->setID("best-bar-custom-practice-button-label");
-                    practiceLabel->setScale(0.22f);
-                    practiceLabel->setPosition({54.0f, winSize.height - 89.0f});
-                    practiceMenu->addChild(practiceLabel);
-                }
-            }
-        }
-
-        if (!settingEnabled("enabled") || !settingEnabled("show-gold-run-button")) return;
-
         bool platformer = bestBar->isPlatformerLevel();
         bool active = platformer && bestBar->isGoldRunMode();
         auto color = bestColor();
@@ -4016,31 +3122,6 @@ class $modify(BestBarPauseLayer, PauseLayer) {
         auto itemPos = item->getPosition();
         status->setPosition({itemPos.x, itemPos.y - targetButtonSize * 0.60f});
         menu->addChild(status, item->getZOrder() + 1);
-    }
-
-    void onCustomPractice(CCObject*) {
-        auto play = PlayLayer::get();
-        if (!play) return;
-        auto bestBar = static_cast<BestBarPlayLayer*>(play);
-        if (!bestBar->isCustomPracticeActive()) {
-            FLAlertLayer::create(
-                "Custom Practice",
-                "Custom Practice only works while the level is in <cy>Practice Mode</c>.",
-                "OK"
-            )->show();
-            return;
-        }
-
-        auto mode = normalizedPracticeEntryMode();
-        bool hidePreview = Mod::get()->getSavedValue<bool>("custom-practice-hide-preview-choice", false);
-        if (mode == "preview" && !hidePreview) {
-            auto preview = CustomPracticePreviewLayer::create(bestBar);
-            if (preview) CCDirector::get()->getRunningScene()->addChild(preview, 20'100);
-        }
-        else {
-            auto popup = CustomPracticeRangePopup::create(bestBar);
-            if (popup) CCDirector::get()->getRunningScene()->addChild(popup, 20'100);
-        }
     }
 
     void onGoldRun(CCObject*) {

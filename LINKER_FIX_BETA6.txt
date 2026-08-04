@@ -1,4 +1,4 @@
-BEST BAR v2.0.0-beta.6 — CHEAT API LINKER FIX
+BEST BAR v2.0.0-beta.8 — CHEAT API LINKER FIX
 
 The Cheat API dependency is now required rather than optional. Best Bar directly calls
 cheatAPI::isCheating(), so Geode must link the dependency import library during the build.

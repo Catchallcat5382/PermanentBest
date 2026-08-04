@@ -1,0 +1,7 @@
+BEST BAR v2.0.0-beta.8
+
+Added INSTALL.bat.
+
+INSTALL.bat installs the newest existing .geode package without rebuilding, pushing, or releasing.
+It prefers releases\latest\BestBar.geode, then searches releases, dist, and the project root.
+BUILD.bat still builds and installs automatically.

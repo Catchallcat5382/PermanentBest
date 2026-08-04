@@ -1,0 +1,4 @@
+Repository is permanently pinned to Catchallcat5382/PermanentBest.
+The scripts never create or use Catchallcat5382/BestBar.
+PermanentBest main and .github/workflows/build.yml are required and verified before push.
+Gameplay source remains the pre-Custom-Practice v1.8.0 code.

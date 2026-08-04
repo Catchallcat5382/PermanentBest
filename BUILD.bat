@@ -1,12 +1,12 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-title Best Bar - Build and Install v2.0.0-beta.6
+title Best Bar - Build and Install v1.8.1
 color 06
 cls
 
 echo ============================================================
-echo  BEST BAR - BUILD AND INSTALL v2.0.0-beta.6
+echo  BEST BAR - BUILD AND INSTALL v1.8.1
 echo ============================================================
 echo.
 echo Builds, packages, verifies, and installs Best Bar.
@@ -14,7 +14,7 @@ echo The complete gold overlay appears only for Gold Run, passed-best, or 100%% 
 echo.
 
 for %%I in ("%~dp0.") do set "SOURCE_DIR=%%~fI"
-set "BUILD_ROOT=%LOCALAPPDATA%\BestBarBuild\build-v200-beta6"
+set "BUILD_ROOT=%LOCALAPPDATA%\BestBarBuild\build-v181"
 set "PACKAGE_STAGE=%BUILD_ROOT%\manual-package"
 
 set "GAME_ROOT=F:\SteamLibrary\steamapps\common\Geometry Dash"
