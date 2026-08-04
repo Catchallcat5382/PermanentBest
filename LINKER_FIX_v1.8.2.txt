@@ -1,0 +1,5 @@
+Best Bar v1.8.2
+- Keeps the pre-Custom-Practice gameplay code.
+- Keeps repository Catchallcat5382/PermanentBest.
+- Marks legowiifun.cheat_api as required so Geode links its imported symbols.
+- Replaces deprecated Windows getenv calls with _dupenv_s.

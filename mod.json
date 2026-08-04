@@ -5,7 +5,7 @@
            },
     "id":  "catchallcat5382.best-bar",
     "name":  "Best Bar",
-    "version":  "v1.8.1",
+    "version":  "v1.8.2",
     "developer":  "Catchallcat5382",
     "description":  "Best Bar with platformer Gold Runs, stock-frame alignment, full-range live progress, and corrected thin centered gold-fill rendering.",
     "links":  {
@@ -193,7 +193,7 @@
     "dependencies":  {
                          "legowiifun.cheat_api":  {
                                                       "version":  "\u003e=1.2.3",
-                                                      "required":  false
+                                                      "required":  true
                                                   }
                      }
 }

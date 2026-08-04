@@ -554,10 +554,27 @@ namespace {
     constexpr char const* LAYOUT_DEBUG_FLAG = "BestBarLayoutDebug.flag";
 
     bool layoutDebugEnabled() {
-        auto temp = std::getenv("TEMP");
-        if (!temp || !*temp) temp = std::getenv("TMP");
-        if (!temp || !*temp) return false;
+#ifdef GEODE_IS_WINDOWS
+        char* tempValue = nullptr;
+        size_t tempLength = 0;
+        if (_dupenv_s(&tempValue, &tempLength, "TEMP") != 0 || !tempValue || !*tempValue) {
+            if (tempValue) std::free(tempValue);
+            tempValue = nullptr;
+            tempLength = 0;
+            _dupenv_s(&tempValue, &tempLength, "TMP");
+        }
+        if (!tempValue || !*tempValue) {
+            if (tempValue) std::free(tempValue);
+            return false;
+        }
+        auto enabled = std::filesystem::exists(std::filesystem::path(tempValue) / LAYOUT_DEBUG_FLAG);
+        std::free(tempValue);
+        return enabled;
+#else
+        auto temp = std::getenv("TMPDIR");
+        if (!temp || !*temp) temp = "/tmp";
         return std::filesystem::exists(std::filesystem::path(temp) / LAYOUT_DEBUG_FLAG);
+#endif
     }
 
 }
